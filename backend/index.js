@@ -10,10 +10,24 @@ import { seedIfEmpty } from "./utils/seedSpots.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL?.replace(/\/$/, ""),
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://adda-map.vercel.app",
+].filter(Boolean);
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
   }),
 );
 app.use(express.json({ limit: "10mb" }));
