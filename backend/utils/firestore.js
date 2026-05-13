@@ -17,7 +17,7 @@ export async function ensureUserProfile(decodedUser) {
     spotsCount: 0,
     reviewsCount: 0,
     helpfulVotes: 0,
-    level: 'Chai Scout',
+    level: 'Food Explorer',
     onboardingComplete: false,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp()

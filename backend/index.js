@@ -6,7 +6,6 @@ import feedRoutes from "./routes/feed.js";
 import usersRoutes from "./routes/users.js";
 import leaderboardRoutes from "./routes/leaderboard.js";
 import reviewsRoutes from "./routes/reviews.js";
-import { seedIfEmpty } from "./utils/seedSpots.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -47,15 +46,6 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
-const startServer = async () => {
-  await seedIfEmpty();
-
-  app.listen(port, () => {
-    console.log(`Adda Map backend listening on port ${port}`);
-  });
-};
-
-startServer().catch((error) => {
-  console.error("Backend startup failed:", error);
-  process.exit(1);
+app.listen(port, () => {
+  console.log(`Adda Map backend listening on port ${port}`);
 });

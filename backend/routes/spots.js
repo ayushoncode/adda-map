@@ -3,6 +3,18 @@ import { db, FieldValue } from "../firebase-admin.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
+const supportedSpotTypes = new Set([
+  "chai",
+  "biryani",
+  "street-food",
+  "thali",
+  "snacks",
+  "desserts",
+  "south-indian",
+  "north-indian",
+  "fast-food",
+  "juice-drinks",
+]);
 
 const haversineDistance = (lat1, lng1, lat2, lng2) => {
   const toRadians = (degrees) => (degrees * Math.PI) / 180;
@@ -72,10 +84,10 @@ const buildFeedItem = ({
 });
 
 const getLevelFromSpotsCount = (spotsCount = 0) => {
-  if (spotsCount <= 5) return "Chai Scout";
-  if (spotsCount <= 15) return "Biryani Hunter";
-  if (spotsCount <= 30) return "Street Food Legend";
-  return "Area Champion";
+  if (spotsCount <= 5) return "Food Explorer";
+  if (spotsCount <= 15) return "Street Scout";
+  if (spotsCount <= 30) return "Adda Legend";
+  return "City Champion";
 };
 
 const ensureUserProfile = async (uid) => {
@@ -191,6 +203,10 @@ router.post("/", requireAuth, async (req, res) => {
       !reviewText
     ) {
       return res.status(400).json({ error: "Missing required spot fields" });
+    }
+
+    if (!supportedSpotTypes.has(type)) {
+      return res.status(400).json({ error: "Unsupported food category" });
     }
 
     const { ref: userRef, data: user } = await ensureUserProfile(req.user.uid);
@@ -443,7 +459,7 @@ router.put("/:id/reviews/:reviewId/helpful", requireAuth, async (req, res) => {
         action: "helpful",
         spotId: req.params.id,
         spotName: review.spotName || "",
-        type: req.body.type || "chai",
+        type: supportedSpotTypes.has(req.body.type) ? req.body.type : "chai",
         meta: {
           reviewId: req.params.reviewId,
           recipientId: review.userId,

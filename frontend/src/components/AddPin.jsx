@@ -3,7 +3,7 @@ import L from "leaflet";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import api from "../api";
 import { auth, storage } from "../firebase";
-import { getTypeColor } from "../utils";
+import { getTypeColor, getTypeMeta, spotTypes } from "../utils";
 
 const mapPinIcon = L.divIcon({
   className: "",
@@ -44,8 +44,11 @@ export default function AddPin({ userLocation, onBack, onToast, onCreated }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const typeColor = getTypeColor(form.type);
+  const selectedType = getTypeMeta(form.type);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
   const livePrice = useMemo(() => {
     if (!form.priceMin || !form.priceMax) return "₹0 – ₹0";
     return `₹${form.priceMin} – ₹${form.priceMax}`;
@@ -88,6 +91,17 @@ export default function AddPin({ userLocation, onBack, onToast, onCreated }) {
   useEffect(() => {
     if (userLocation) setCoords(userLocation);
   }, [userLocation]);
+
+  useEffect(() => {
+    if (!photo) {
+      setPhotoPreviewUrl("");
+      return undefined;
+    }
+
+    const objectUrl = URL.createObjectURL(photo);
+    setPhotoPreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [photo]);
 
   const validate = () => {
     const nextErrors = {};
@@ -149,16 +163,17 @@ export default function AddPin({ userLocation, onBack, onToast, onCreated }) {
 
         <div>
           <span>Type</span>
-          <div className="type-toggle">
-            {["chai", "biryani"].map((type) => (
+          <div className="type-grid">
+            {spotTypes.map((type) => (
               <button
-                key={type}
+                key={type.value}
                 type="button"
-                className={`type-option ${form.type === type ? "selected" : ""}`}
-                style={form.type === type ? { background: getTypeColor(type) } : undefined}
-                onClick={() => update("type", type)}
+                className={`type-option ${form.type === type.value ? "selected" : ""}`}
+                style={form.type === type.value ? { background: type.color, borderColor: type.color } : undefined}
+                onClick={() => update("type", type.value)}
               >
-                {type === "chai" ? "☕ CHAI" : "🍛 BIRYANI"}
+                <span className="type-option-emoji">{type.emoji}</span>
+                <span>{type.label}</span>
               </button>
             ))}
           </div>
@@ -245,11 +260,26 @@ export default function AddPin({ userLocation, onBack, onToast, onCreated }) {
           </div>
         </div>
 
-        <label className="upload-box">
-          <input type="file" accept="image/*" onChange={(event) => setPhoto(event.target.files?.[0] || null)} />
-          <span>📷 Add a photo</span>
-          <small>{photo ? photo.name : "Optional, but a great photo always helps."}</small>
-        </label>
+        <div className="upload-box">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={(event) => setPhoto(event.target.files?.[0] || null)}
+          />
+          <button type="button" className="ghost-button upload-trigger" onClick={() => fileInputRef.current?.click()}>
+            📷 Add Photo
+          </button>
+          <span>{photo ? `${selectedType.emoji} ${photo.name}` : "Optional, but a great photo always helps."}</span>
+          <small>On mobile, this opens your camera or gallery so you can upload a real spot photo.</small>
+          {photoPreviewUrl && (
+            <div
+              className="upload-preview"
+              style={{ backgroundImage: `url(${photoPreviewUrl})` }}
+              aria-label="Selected photo preview"
+            />
+          )}
+        </div>
 
         <button type="button" className="primary-button large" onClick={submit} disabled={saving}>
           {saving ? "Saving spot…" : "Pin this spot"}

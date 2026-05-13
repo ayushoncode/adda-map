@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import api from "../api";
-import { formatAreaLabel, getCityKey, getTypeColor, haversineKm, initials, isOpenNow, timeAgo } from "../utils";
-
-const getTypeMeta = (type) =>
-  type === "biryani"
-    ? { emoji: "🍛", label: "Biryani", color: "#1D9E75" }
-    : { emoji: "☕", label: "Chai", color: "#E8A020" };
+import { formatAreaLabel, getCityKey, getTypeColor, getTypeMeta, haversineKm, initials, isOpenNow, timeAgo } from "../utils";
 
 const formatDistanceAway = (distanceKm) => {
   if (distanceKm === null || Number.isNaN(distanceKm)) return "Distance unavailable";
@@ -68,6 +63,7 @@ export default function SpotDetail({ spot, user, userLocation, onClose, onToast,
   const dragStartY = useRef(0);
   const dragOffsetRef = useRef(0);
   const draggingRef = useRef(false);
+  const activeSpot = detail?.spot || spot;
 
   useEffect(() => {
     if (!spot?.id) return;
@@ -94,18 +90,18 @@ export default function SpotDetail({ spot, user, userLocation, onClose, onToast,
   }, [spot?.id, onToast]);
 
   useEffect(() => {
-    if (!spot?.id || !spot?.type || spot?.lat == null || spot?.lng == null) return;
+    if (!activeSpot?.id || !activeSpot?.type || activeSpot?.lat == null || activeSpot?.lng == null) return;
     let ignore = false;
 
     api
-      .get(`/spots?lat=${spot.lat}&lng=${spot.lng}&type=${spot.type}${user?.area ? `&area=${encodeURIComponent(user.area)}` : ""}`)
+      .get(`/spots?lat=${activeSpot.lat}&lng=${activeSpot.lng}&type=${activeSpot.type}${user?.area ? `&area=${encodeURIComponent(user.area)}` : ""}`)
       .then((response) => {
         if (ignore) return;
         const nearby = (response.data.spots || [])
-          .filter((entry) => entry.id !== spot.id)
+          .filter((entry) => entry.id !== activeSpot.id)
           .map((entry) => ({
             ...entry,
-            distanceKm: haversineKm(Number(spot.lat), Number(spot.lng), Number(entry.lat), Number(entry.lng)),
+            distanceKm: haversineKm(Number(activeSpot.lat), Number(activeSpot.lng), Number(entry.lat), Number(entry.lng)),
           }))
           .filter((entry) => entry.distanceKm !== null && entry.distanceKm <= 2)
           .slice(0, 3);
@@ -118,11 +114,10 @@ export default function SpotDetail({ spot, user, userLocation, onClose, onToast,
     return () => {
       ignore = true;
     };
-  }, [spot?.id, spot?.lat, spot?.lng, spot?.type, user?.area]);
-
-  const activeSpot = detail?.spot || spot;
+  }, [activeSpot?.id, activeSpot?.lat, activeSpot?.lng, activeSpot?.type, user?.area]);
   const typeMeta = getTypeMeta(activeSpot?.type);
   const typeColor = getTypeColor(activeSpot?.type);
+  const photos = activeSpot?.photos || [];
   const reviews = detail?.reviews || [];
   const reviewCount = Number(activeSpot?.reviewCount || reviews.length || 0);
   const avgRating = Number(activeSpot?.avgRating || 0).toFixed(1);
@@ -298,11 +293,23 @@ export default function SpotDetail({ spot, user, userLocation, onClose, onToast,
           <>
             <div className="spot-sheet-scroll">
               <header className="detail-hero">
+                {!!photos.length && (
+                  <div className="detail-photo-strip">
+                    {photos.map((photo, index) => (
+                      <div
+                        key={`${photo}-${index}`}
+                        className={`detail-photo-tile ${index === 0 ? "hero" : ""}`}
+                        style={{ backgroundImage: `url(${photo})` }}
+                        aria-label={`${activeSpot.name} photo ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
                 <div className="detail-hero-copy">
                   <h2 className="detail-title">{activeSpot.name}</h2>
                   <div className="detail-pill-row">
                     <span className="detail-type-pill" style={{ background: `${typeMeta.color}22`, color: typeMeta.color }}>
-                      {typeMeta.emoji} {typeMeta.label}
+                      {typeMeta.fullLabel}
                     </span>
                     <span className={`detail-status-pill ${isOpen ? "open" : "closed"}`}>
                       {isOpen ? "Open now" : "Closed"}

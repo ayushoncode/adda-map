@@ -14,7 +14,7 @@ const buildDefaultUserProfile = (id) => ({
   spotsCount: 0,
   reviewsCount: 0,
   helpfulVotesReceived: 0,
-  level: "Chai Scout",
+  level: "Food Explorer",
   onboardingComplete: false,
 });
 
@@ -117,7 +117,7 @@ router.put("/:id", async (req, res) => {
         spotsCount: 0,
         reviewsCount: 0,
         helpfulVotesReceived: 0,
-        level: "Chai Scout",
+        level: "Food Explorer",
         ...updates,
       },
       { merge: true },

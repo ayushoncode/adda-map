@@ -24,8 +24,8 @@ export function isOpenNow(openTime, closeTime) {
 }
 
 export function getScoutLevel(spotsCount = 0) {
-  if (spotsCount <= 5) return 'Chai Scout';
-  if (spotsCount <= 15) return 'Biryani Hunter';
-  if (spotsCount <= 30) return 'Street Food Legend';
-  return 'Area Champion';
+  if (spotsCount <= 5) return 'Food Explorer';
+  if (spotsCount <= 15) return 'Street Scout';
+  if (spotsCount <= 30) return 'Adda Legend';
+  return 'City Champion';
 }

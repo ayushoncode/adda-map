@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { signOut } from "firebase/auth";
 import api from "../api";
 import { auth } from "../firebase";
-import { getLevelFromSpots, getNextLevelTarget, getSpotsToNextLevel, initials } from "../utils";
+import { getLevelFromSpots, getNextLevelTarget, getSpotsToNextLevel, getTypeMeta, initials } from "../utils";
 import Leaderboard from "./Leaderboard";
 
 export default function Profile({ user, onToast, onOpenSpot }) {
@@ -89,7 +89,7 @@ export default function Profile({ user, onToast, onOpenSpot }) {
             {(profile?.pinnedSpots || []).map((spot) => (
               <button key={spot.id} type="button" className="pin-mini-card" onClick={() => onOpenSpot(spot)}>
                 <strong>{spot.name}</strong>
-                <span>{spot.type === "biryani" ? "Biryani" : "Chai"}</span>
+                <span>{getTypeMeta(spot.type).fullLabel}</span>
               </button>
             ))}
             {!profile?.pinnedSpots?.length && <div className="empty-card">You have not pinned a spot yet. Add your first favourite place to get started.</div>}

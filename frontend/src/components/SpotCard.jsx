@@ -3,6 +3,7 @@ import {
   getDistance,
   getSpotTags,
   getTypeColor,
+  getTypeMeta,
   initials,
   isOpenNow,
   timeAgo,
@@ -13,16 +14,20 @@ export default function SpotCard({ spot, userLocation, onOpen }) {
     ? getDistance(userLocation.lat, userLocation.lng, Number(spot.lat), Number(spot.lng))
     : null;
   const tags = getSpotTags(spot).slice(0, 2);
-  const typeLabel = spot.type === "biryani" ? "Biryani 🍛" : "Chai ☕";
+  const typeMeta = getTypeMeta(spot.type);
+  const photoUrl = spot.photos?.[0];
 
   return (
     <button type="button" className="spot-card" onClick={() => onOpen(spot)}>
+      {photoUrl && (
+        <div className="spot-card-photo" style={{ backgroundImage: `url(${photoUrl})` }} aria-hidden="true" />
+      )}
       <div className="spot-card-header">
         <div>
           <h3>{spot.name}</h3>
           <div className="row gap-sm">
             <span className="badge" style={{ background: `${getTypeColor(spot.type)}22`, color: getTypeColor(spot.type) }}>
-              {typeLabel}
+              {typeMeta.fullLabel}
             </span>
             <span className={`badge ${isOpenNow(spot.openTime, spot.closeTime) ? "badge-open" : "badge-closed"}`}>
               {isOpenNow(spot.openTime, spot.closeTime) ? "Open" : "Closed"}

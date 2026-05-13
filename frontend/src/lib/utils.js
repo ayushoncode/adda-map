@@ -38,10 +38,10 @@ export function isOpenNow(openTime, closeTime) {
 
 export function getLevelMeta(user = {}) {
   const spots = user.spotsCount || 0;
-  if (spots <= 5) return { label: 'Chai Scout', accent: '#E8A020' };
-  if (spots <= 15) return { label: 'Biryani Hunter', accent: '#1D9E75' };
-  if (spots <= 30) return { label: 'Street Food Legend', accent: '#8F5BFF' };
-  return { label: 'Area Champion', accent: 'linear-gradient(135deg, #E8A020, #FFD700)' };
+  if (spots <= 5) return { label: 'Food Explorer', accent: '#E8A020' };
+  if (spots <= 15) return { label: 'Street Scout', accent: '#1D9E75' };
+  if (spots <= 30) return { label: 'Adda Legend', accent: '#8F5BFF' };
+  return { label: 'City Champion', accent: 'linear-gradient(135deg, #E8A020, #FFD700)' };
 }
 
 export function getInitials(name = '') {

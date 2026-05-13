@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
-import { formatDistance, getCoordinatesFromArea, getDistance, isOpenNow, koramangalaCenter } from "../utils";
+import {
+  formatDistance,
+  getCoordinatesFromArea,
+  getDistance,
+  getTypeMeta,
+  isOpenNow,
+  koramangalaCenter,
+} from "../utils";
 
 const MAP_STYLE_STORAGE_KEY = "adda-map-style";
 const MAP_STYLE_ORDER = ["dark", "light", "satellite"];
@@ -36,15 +43,12 @@ const MAP_STYLES = {
 const formatMarkerDistance = (distanceKm) => `${distanceKm.toFixed(1)}km`;
 
 const createSpotIcon = (type, distanceKm) => {
-  const isBiryani = type === "biryani";
-  const emoji = isBiryani ? "🍛" : "☕";
-  const color = isBiryani ? "#1D9E75" : "#E8A020";
-  const shadow = isBiryani ? "rgba(29,158,117,0.6)" : "rgba(232,160,32,0.6)";
+  const meta = getTypeMeta(type);
   const distance = distanceKm !== null ? formatMarkerDistance(distanceKm) : "";
 
   return L.divIcon({
     html: `<div style="
-      background:${color};
+      background:${meta.color};
       width:56px;
       height:56px;
       border-radius:50%;
@@ -53,10 +57,10 @@ const createSpotIcon = (type, distanceKm) => {
       align-items:center;
       justify-content:center;
       border:3px solid white;
-      box-shadow:0 4px 12px ${shadow};
+      box-shadow:0 4px 12px ${meta.color}99;
       gap:1px;
     ">
-      <span style="font-size:20px;line-height:1">${emoji}</span>
+      <span style="font-size:20px;line-height:1">${meta.emoji}</span>
       <span style="font-size:9px;font-weight:700;color:white;line-height:1">${distance}</span>
     </div>`,
     className: "",
@@ -77,11 +81,13 @@ const getPopupMarkup = (spot, distanceText = "") => {
   const avgRating = Number(spot.avgRating || 0).toFixed(1);
   const reviewCount = Number(spot.reviewCount || 0);
   const status = isOpenNow(spot.openTime, spot.closeTime) ? "Open" : "Closed";
+  const typeMeta = getTypeMeta(spot.type);
 
   return `
     <div style="background:#1A1D27;color:#F0F0F0;border-radius:12px;padding:12px;min-width:160px;border:1px solid #2A2D3A">
       <div style="font-weight:600;font-size:14px;margin-bottom:4px">${spot.name}</div>
-      <div style="color:#E8A020;font-size:12px">★ ${avgRating} · ${reviewCount} reviews</div>
+      <div style="color:${typeMeta.color};font-size:12px">${typeMeta.emoji} ${typeMeta.label}</div>
+      <div style="color:#E8A020;font-size:12px;margin-top:4px">★ ${avgRating} · ${reviewCount} reviews</div>
       <div style="color:#8A8D9A;font-size:12px;margin-top:4px">₹${spot.priceMin || 0}–₹${spot.priceMax || 0}</div>
       <div style="color:${status === "Open" ? "#7EE0B8" : "#FF9CA5"};font-size:12px;margin-top:4px">${status}</div>
       ${distanceText ? `<div style="color:#8A8D9A;font-size:12px;margin-top:4px">${distanceText}</div>` : ""}

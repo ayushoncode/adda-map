@@ -12,12 +12,12 @@ import {
   isBudgetBite,
   isHiddenGem,
   isNightOwlSpot,
+  spotTypes,
 } from "../utils";
 
 const filters = [
   { label: "All", color: "#E8A020" },
-  { label: "Chai ☕", color: "#E8A020" },
-  { label: "Biryani 🍛", color: "#1D9E75" },
+  ...spotTypes.map((type) => ({ label: type.fullLabel, color: type.color })),
   { label: "Happening Now 🔥", color: "#FF4444" },
   { label: "Hidden Gem 💎", color: "#9B59B6" },
   { label: "Night Owl 🦉", color: "#1F3A5F" },
@@ -35,6 +35,7 @@ export default function Home({
   onAccentChange,
 }) {
   const [activeFilter, setActiveFilter] = useState("All");
+  const [searchTerm, setSearchTerm] = useState("");
   const [spots, setSpots] = useState([]);
   const [loading, setLoading] = useState(true);
   const effectiveLocation =
@@ -73,11 +74,9 @@ export default function Home({
   }, [activeFilter, effectiveLocation, refreshKey, userProfile?.area]);
 
   const filteredSpots = useMemo(() => {
+    const selectedType = spotTypes.find((type) => type.fullLabel === activeFilter)?.value;
+
     switch (activeFilter) {
-      case "Chai ☕":
-        return spots.filter((spot) => spot.type === "chai");
-      case "Biryani 🍛":
-        return spots.filter((spot) => spot.type === "biryani");
       case "Happening Now 🔥":
         return spots.filter((spot) => isActiveWithin24Hours(spot));
       case "Hidden Gem 💎":
@@ -87,9 +86,15 @@ export default function Home({
       case "Budget Bites 💸":
         return spots.filter((spot) => isBudgetBite(spot));
       default:
-        return spots;
+        return selectedType ? spots.filter((spot) => spot.type === selectedType) : spots;
     }
   }, [activeFilter, spots]);
+
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const visibleSpots = useMemo(() => {
+    if (!normalizedSearchTerm) return filteredSpots;
+    return filteredSpots.filter((spot) => spot.name?.toLowerCase().includes(normalizedSearchTerm));
+  }, [filteredSpots, normalizedSearchTerm]);
 
   const accent = useMemo(() => filterTint(activeFilter), [activeFilter]);
   const center = effectiveLocation || { lat: 12.9352, lng: 77.6245 };
@@ -122,8 +127,18 @@ export default function Home({
         ))}
       </div>
 
+      <label className="search-shell">
+        <span className="search-icon">🔍</span>
+        <input
+          type="search"
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.target.value)}
+          placeholder="Search for biryani, chai, momos..."
+        />
+      </label>
+
       <Map
-        spots={filteredSpots}
+        spots={visibleSpots}
         center={center}
         userLocation={effectiveLocation}
         setUserLocation={setUserLocation}
@@ -135,19 +150,27 @@ export default function Home({
       <div className="spots-list">
         {loading ? (
           Array.from({ length: 3 }).map((_, index) => <div key={index} className="spot-card skeleton-card" />)
-        ) : filteredSpots.length ? (
-          filteredSpots.map((spot) => (
+        ) : visibleSpots.length ? (
+          visibleSpots.map((spot) => (
             <SpotCard key={spot.id} spot={spot} userLocation={effectiveLocation} onOpen={onOpenSpot} />
           ))
         ) : (
           <div className="empty-card empty-map-state">
-            <strong>{activeFilter === "Night Owl 🦉" ? "No late night spots open right now 🌙" : "No spots here yet 📍"}</strong>
+            <strong>
+              {normalizedSearchTerm
+                ? `No spots found for "${searchTerm.trim()}" 📍`
+                : activeFilter === "Night Owl 🦉"
+                  ? "No late night spots open right now 🌙"
+                  : "No spots here yet 📍"}
+            </strong>
             <p>
-              {activeFilter === "Night Owl 🦉"
-                ? "Check back after 9 PM or add one!"
-                : "Be the first to add a chai or biryani spot in your area!"}
+              {normalizedSearchTerm
+                ? `No spots found for "${searchTerm.trim()}" — be the first to add one!`
+                : activeFilter === "Night Owl 🦉"
+                  ? "Check back after 9 PM or add one!"
+                  : "Be the first to add a food spot in your area!"}
             </p>
-            {activeFilter !== "Night Owl 🦉" && <p>Your pin could help hundreds of people find great food.</p>}
+            {!normalizedSearchTerm && activeFilter !== "Night Owl 🦉" && <p>Your pin could help hundreds of people find great food.</p>}
             <button type="button" className="primary-button large" onClick={onOpenAdd}>
               + Add Spot
             </button>
@@ -158,7 +181,7 @@ export default function Home({
       <button
         type="button"
         className="floating-add"
-        style={{ background: getTypeColor(activeFilter === "Biryani 🍛" ? "biryani" : "chai") }}
+        style={{ background: spotTypes.find((type) => type.fullLabel === activeFilter)?.color || getTypeColor("chai") }}
         onClick={onOpenAdd}
       >
         +

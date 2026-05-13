@@ -253,6 +253,33 @@ button {
   font-weight: 800;
 }
 
+.search-shell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.search-shell input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.search-shell input::placeholder {
+  color: var(--muted);
+}
+
+.search-icon {
+  color: var(--muted);
+}
+
 .map-shell,
 .mini-map-shell {
   border: 1px solid var(--border);
@@ -417,6 +444,16 @@ button {
   width: 100%;
   color: var(--text);
   text-align: left;
+}
+
+.spot-card-photo {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 14px;
+  border-radius: 18px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .empty-map-state {
@@ -643,6 +680,27 @@ button {
 
 .detail-hero {
   padding: 6px 0 10px;
+}
+
+.detail-photo-strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.detail-photo-tile {
+  min-height: 120px;
+  border-radius: 20px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.detail-photo-tile.hero {
+  grid-column: 1 / -1;
+  min-height: 220px;
 }
 
 .detail-title {
@@ -1049,14 +1107,14 @@ label select {
   justify-content: space-between;
 }
 
-.type-toggle,
+.type-grid,
 .toggle-wrap,
 .stats-grid {
   display: grid;
   gap: 10px;
 }
 
-.type-toggle,
+.type-grid,
 .stats-grid {
   grid-template-columns: repeat(2, 1fr);
 }
@@ -1068,6 +1126,19 @@ label select {
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
   border: 1px solid var(--border);
+}
+
+.type-option {
+  min-height: 78px;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  text-align: left;
+}
+
+.type-option-emoji {
+  font-size: 1.35rem;
+  line-height: 1;
 }
 
 .type-option.selected,
@@ -1082,6 +1153,20 @@ label select {
   padding: 18px;
   display: grid;
   gap: 6px;
+}
+
+.upload-trigger {
+  width: fit-content;
+}
+
+.upload-preview {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 8px;
+  border-radius: 18px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .upload-box input {
@@ -1168,6 +1253,7 @@ label select {
 
 .feed-card {
   animation: fadeUp 320ms ease backwards;
+  cursor: pointer;
 }
 
 .updates-pill {

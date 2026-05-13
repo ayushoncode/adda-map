@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../api";
-import { formatDistance, getDistance, getLevelFromSpots, getTypeColor, initials, timeAgo } from "../utils";
+import { formatDistance, getDistance, getLevelFromSpots, getTypeColor, getTypeMeta, initials, timeAgo } from "../utils";
 
 const dostIds = ["friend-1", "friend-2", "friend-3"];
 
@@ -96,8 +96,23 @@ export default function Feed({ onOpenSpot, onToast, userLocation }) {
         <div className="feed-list">
           {items.map((item, index) => {
             const level = getLevelFromSpots(item.spotsCount || 0);
+            const typeMeta = getTypeMeta(item.type);
+            const openSpot = () => onOpenSpot({ id: item.spotId, name: item.spotName, type: item.type });
             return (
-              <article key={item.id} className="feed-card" style={{ animationDelay: `${index * 80}ms` }}>
+              <article
+                key={item.id}
+                className="feed-card"
+                style={{ animationDelay: `${index * 80}ms` }}
+                onClick={openSpot}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openSpot();
+                  }
+                }}
+              >
                 <div className="row gap-sm start">
                   <span className="reviewer-avatar big" style={{ background: item.avatarColor || "#364152" }}>
                     {initials(item.userName)}
@@ -111,7 +126,7 @@ export default function Feed({ onOpenSpot, onToast, userLocation }) {
                     <p className="muted">
                       {item.action === "pinned" ? (
                         <>
-                          pinned a new {item.type === "biryani" ? "biryani" : "chai"} spot
+                          pinned a new {typeMeta.label.toLowerCase()} spot
                           {getPinnedDistanceText(item, userLocation)}
                         </>
                       ) : item.action === "helpful" ? (
@@ -121,7 +136,10 @@ export default function Feed({ onOpenSpot, onToast, userLocation }) {
                             type="button"
                             className="spot-link-button"
                             style={{ color: getTypeColor(item.type) }}
-                            onClick={() => onOpenSpot({ id: item.spotId, name: item.spotName, type: item.type })}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openSpot();
+                            }}
                           >
                             {item.spotName}
                           </button>{" "}
@@ -134,7 +152,10 @@ export default function Feed({ onOpenSpot, onToast, userLocation }) {
                             type="button"
                             className="spot-link-button"
                             style={{ color: getTypeColor(item.type) }}
-                            onClick={() => onOpenSpot({ id: item.spotId, name: item.spotName, type: item.type })}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openSpot();
+                            }}
                           >
                             {item.spotName}
                           </button>{" "}
@@ -147,7 +168,10 @@ export default function Feed({ onOpenSpot, onToast, userLocation }) {
                             type="button"
                             className="spot-link-button"
                             style={{ color: getTypeColor(item.type) }}
-                            onClick={() => onOpenSpot({ id: item.spotId, name: item.spotName, type: item.type })}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openSpot();
+                            }}
                           >
                             {item.spotName}
                           </button>{" "}

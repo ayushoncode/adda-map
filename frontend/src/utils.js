@@ -6,6 +6,14 @@ export const palette = {
   muted: "#8A8D9A",
   chai: "#E8A020",
   biryani: "#1D9E75",
+  streetFood: "#F97316",
+  thali: "#F4C430",
+  snacks: "#F59E0B",
+  desserts: "#F472B6",
+  southIndian: "#14B8A6",
+  northIndian: "#EF4444",
+  fastFood: "#FB7185",
+  juiceDrinks: "#38BDF8",
   danger: "#E25563",
   happening: "#FF4444",
   gem: "#9B59B6",
@@ -13,16 +21,31 @@ export const palette = {
   budget: "#1D9E75",
 };
 
+export const spotTypes = [
+  { value: "chai", label: "Chai", fullLabel: "Chai ☕", emoji: "☕", color: palette.chai },
+  { value: "biryani", label: "Biryani", fullLabel: "Biryani 🍛", emoji: "🍛", color: palette.biryani },
+  { value: "street-food", label: "Street Food", fullLabel: "Street Food 🌮", emoji: "🌮", color: palette.streetFood },
+  { value: "thali", label: "Thali", fullLabel: "Thali 🍱", emoji: "🍱", color: palette.thali },
+  { value: "snacks", label: "Snacks", fullLabel: "Snacks 🥪", emoji: "🥪", color: palette.snacks },
+  { value: "desserts", label: "Desserts", fullLabel: "Desserts 🍨", emoji: "🍨", color: palette.desserts },
+  { value: "south-indian", label: "South Indian", fullLabel: "South Indian 🥘", emoji: "🥘", color: palette.southIndian },
+  { value: "north-indian", label: "North Indian", fullLabel: "North Indian 🫕", emoji: "🫕", color: palette.northIndian },
+  { value: "fast-food", label: "Fast Food", fullLabel: "Fast Food 🍔", emoji: "🍔", color: palette.fastFood },
+  { value: "juice-drinks", label: "Juice & Drinks", fullLabel: "Juice & Drinks 🥤", emoji: "🥤", color: palette.juiceDrinks },
+];
+
+export const spotTypeMap = Object.fromEntries(spotTypes.map((entry) => [entry.value, entry]));
+
 export const koramangalaCenter = {
   lat: 12.9352,
   lng: 77.6245,
 };
 
 export const levelConfig = [
-  { max: 5, label: "Chai Scout", icon: "🍵", color: "#E8A020" },
-  { max: 15, label: "Biryani Hunter", icon: "🍛", color: "#1D9E75" },
-  { max: 30, label: "Street Food Legend", icon: "🌟", color: "#A26BFF" },
-  { max: Infinity, label: "Area Champion", icon: "👑", color: "#FFD76A" },
+  { max: 5, label: "Food Explorer", icon: "🗺️", color: "#E8A020" },
+  { max: 15, label: "Street Scout", icon: "🔍", color: "#1D9E75" },
+  { max: 30, label: "Adda Legend", icon: "🌟", color: "#A26BFF" },
+  { max: Infinity, label: "City Champion", icon: "👑", color: "#FFD76A" },
 ];
 
 export const getLevelFromSpots = (spotsCount = 0) =>
@@ -119,8 +142,11 @@ export const isActiveWithin24Hours = (spot) => {
   return Date.now() - new Date(spot.lastReviewAt).getTime() <= 24 * 60 * 60 * 1000;
 };
 
-export const isHiddenGem = (spot) =>
-  Number(spot?.avgRating || 0) > 4.3 && Number(spot?.reviewCount || 0) < 20;
+export const isHiddenGem = (spot) => {
+  const avgRating = Number(spot?.avgRating || 0);
+  const reviewCount = Number(spot?.reviewCount || 0);
+  return avgRating >= 4.3 && reviewCount < 20 && reviewCount > 3;
+};
 
 export const isBudgetBite = (spot) => Number(spot?.priceMax || 0) <= 40;
 
@@ -133,8 +159,8 @@ export const initials = (name = "AM") =>
     .join("");
 
 export const filterTint = (filter) => {
-  if (filter === "Chai ☕") return palette.chai;
-  if (filter === "Biryani 🍛") return palette.biryani;
+  const typeMatch = spotTypes.find((entry) => entry.fullLabel === filter);
+  if (typeMatch) return typeMatch.color;
   if (filter === "Happening Now 🔥") return palette.happening;
   if (filter === "Hidden Gem 💎") return palette.gem;
   if (filter === "Night Owl 🦉") return palette.night;
@@ -142,7 +168,9 @@ export const filterTint = (filter) => {
   return palette.chai;
 };
 
-export const getTypeColor = (type) => (type === "biryani" ? palette.biryani : palette.chai);
+export const getTypeMeta = (type) => spotTypeMap[type] || spotTypeMap.chai;
+
+export const getTypeColor = (type) => getTypeMeta(type).color;
 
 export const formatAreaLabel = (area, fallback = "Your area") => {
   const parts = String(area || "")
