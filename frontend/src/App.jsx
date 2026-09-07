@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { useCallback, useEffect, useState } from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import api from "./api";
+import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 import AddPin from "./components/AddPin";
 import Feed from "./components/Feed";
@@ -11,7 +12,6 @@ import { auth } from "./firebase";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Onboarding from "./pages/Onboarding";
-import { filterTint } from "./utils";
 
 export default function App() {
   const [authUser, setAuthUser] = useState(null);
@@ -23,7 +23,6 @@ export default function App() {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [userLocation, setUserLocation] = useState(null);
-  const [navAccent, setNavAccent] = useState("#E8A020");
 
   const showToast = useCallback((message, type = "info") => {
     const id = crypto.randomUUID();
@@ -62,10 +61,22 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  const accent = useMemo(() => navAccent || filterTint("Chai ☕"), [navAccent]);
+  const handleLogout = async () => {
+    await signOut(auth);
+    showToast("You have been signed out.", "info");
+  };
 
   if (authLoading) {
-    return <main className="app-shell loading-shell">Loading Adda Map…</main>;
+    return (
+      <main className="auth-fullscreen">
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          <div className="button-spinner" style={{ width: 28, height: 28 }} />
+          <span style={{ color: "#9CA3AF", fontSize: "0.9rem" }}>
+            Loading Adda Map...
+          </span>
+        </div>
+      </main>
+    );
   }
 
   if (!authUser) {
@@ -86,7 +97,7 @@ export default function App() {
           onComplete={(profile) => {
             setUserProfile(profile);
             setNeedsOnboarding(false);
-            showToast("You are all set. Start discovering great food spots.", "success");
+            showToast("Welcome to Adda Map! Start discovering spots.", "success");
           }}
         />
         <Toast toasts={toasts} />
@@ -95,46 +106,61 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell">
-      {tab === "map" && (
-        <Home
-          userProfile={userProfile}
-          onOpenSpot={(spot) => setSelectedSpot(spot)}
-          onOpenProfile={() => setTab("profile")}
-          onOpenAdd={() => setTab("add")}
-          refreshKey={refreshKey}
-          userLocation={userLocation}
-          setUserLocation={setUserLocation}
-          onAccentChange={setNavAccent}
-        />
-      )}
-      {tab === "feed" && (
-        <Feed
-          onOpenSpot={(spot) => setSelectedSpot(spot)}
-          onToast={showToast}
-          userLocation={userLocation}
-        />
-      )}
-      {tab === "add" && (
-        <AddPin
-          userLocation={userLocation}
-          onBack={() => setTab("map")}
-          onToast={showToast}
-          onCreated={() => {
-            setRefreshKey((value) => value + 1);
-          }}
-        />
-      )}
-      {tab === "profile" && (
-        <Profile
-          user={authUser}
-          onToast={showToast}
-          onOpenSpot={(spot) => setSelectedSpot(spot)}
-        />
-      )}
+    <div className="app-root">
+      {/* CMHub Top Header Bar */}
+      <Header
+        userProfile={userProfile}
+        currentTab={tab}
+        onTabChange={setTab}
+        onOpenProfile={() => setTab("profile")}
+        onOpenAdd={() => setTab("add")}
+        onLogout={handleLogout}
+      />
 
-      {tab !== "add" && <BottomNav current={tab} onChange={setTab} accent={accent} />}
+      {/* Main Screen Content */}
+      <main className="main-content-shell">
+        {tab === "map" && (
+          <Home
+            userProfile={userProfile}
+            onOpenSpot={(spot) => setSelectedSpot(spot)}
+            onOpenProfile={() => setTab("profile")}
+            onOpenAdd={() => setTab("add")}
+            refreshKey={refreshKey}
+            userLocation={userLocation}
+            setUserLocation={setUserLocation}
+          />
+        )}
+        {tab === "feed" && (
+          <Feed
+            onOpenSpot={(spot) => setSelectedSpot(spot)}
+            onToast={showToast}
+            userLocation={userLocation}
+          />
+        )}
+        {tab === "add" && (
+          <AddPin
+            userLocation={userLocation}
+            setUserLocation={setUserLocation}
+            onBack={() => setTab("map")}
+            onToast={showToast}
+            onCreated={() => {
+              setRefreshKey((value) => value + 1);
+            }}
+          />
+        )}
+        {tab === "profile" && (
+          <Profile
+            user={authUser}
+            onToast={showToast}
+            onOpenSpot={(spot) => setSelectedSpot(spot)}
+          />
+        )}
+      </main>
 
+      {/* Mobile Floating Bottom Dock */}
+      {tab !== "add" && <BottomNav current={tab} onChange={setTab} />}
+
+      {/* Spot Detail Modal / Bottom Sheet */}
       {selectedSpot && (
         <SpotDetail
           spot={selectedSpot}
@@ -147,7 +173,8 @@ export default function App() {
         />
       )}
 
+      {/* Toast Notifications */}
       <Toast toasts={toasts} />
-    </main>
+    </div>
   );
 }

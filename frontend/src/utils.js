@@ -1,37 +1,48 @@
 export const palette = {
-  bg: "#0F1117",
-  card: "#1A1D27",
-  border: "#2A2D3A",
-  text: "#F0F0F0",
-  muted: "#8A8D9A",
-  chai: "#E8A020",
-  biryani: "#1D9E75",
-  streetFood: "#F97316",
-  thali: "#F4C430",
-  snacks: "#F59E0B",
-  desserts: "#F472B6",
-  southIndian: "#14B8A6",
-  northIndian: "#EF4444",
-  fastFood: "#FB7185",
-  juiceDrinks: "#38BDF8",
-  danger: "#E25563",
-  happening: "#FF4444",
-  gem: "#9B59B6",
-  night: "#1F3A5F",
-  budget: "#1D9E75",
+  bg: "#000000",
+  surface: "#0A0A0A",
+  card: "#141414",
+  cardHover: "#1C1C1C",
+  border: "#262626",
+  borderHighlight: "#383838",
+  text: "#FFFFFF",
+  muted: "#A0A0A0",
+  subtle: "#666666",
+  accent: "#FFFFFF", // Uber signature crisp white CTA
+  accentGreen: "#06C167", // Uber Eats / ride verified green
+  restaurant: "#FFFFFF",
+  hotel: "#E5E5E5",
+  cafe: "#D4D4D8",
+  chai: "#E4E4E7",
+  biryani: "#F4F4F5",
+  streetFood: "#E0E0E0",
+  thali: "#D1D5DB",
+  snacks: "#E5E7EB",
+  desserts: "#F3F4F6",
+  southIndian: "#E5E5E5",
+  northIndian: "#D4D4D8",
+  fastFood: "#F4F4F5",
+  juiceDrinks: "#E4E4E7",
+  danger: "#E11900", // Uber alert red
+  happening: "#FFFFFF",
+  gem: "#FFFFFF",
+  night: "#06C167",
+  budget: "#FFFFFF",
 };
 
 export const spotTypes = [
-  { value: "chai", label: "Chai", fullLabel: "Chai ☕", emoji: "☕", color: palette.chai },
-  { value: "biryani", label: "Biryani", fullLabel: "Biryani 🍛", emoji: "🍛", color: palette.biryani },
-  { value: "street-food", label: "Street Food", fullLabel: "Street Food 🌮", emoji: "🌮", color: palette.streetFood },
-  { value: "thali", label: "Thali", fullLabel: "Thali 🍱", emoji: "🍱", color: palette.thali },
-  { value: "snacks", label: "Snacks", fullLabel: "Snacks 🥪", emoji: "🥪", color: palette.snacks },
-  { value: "desserts", label: "Desserts", fullLabel: "Desserts 🍨", emoji: "🍨", color: palette.desserts },
-  { value: "south-indian", label: "South Indian", fullLabel: "South Indian 🥘", emoji: "🥘", color: palette.southIndian },
-  { value: "north-indian", label: "North Indian", fullLabel: "North Indian 🫕", emoji: "🫕", color: palette.northIndian },
-  { value: "fast-food", label: "Fast Food", fullLabel: "Fast Food 🍔", emoji: "🍔", color: palette.fastFood },
-  { value: "juice-drinks", label: "Juice & Drinks", fullLabel: "Juice & Drinks 🥤", emoji: "🥤", color: palette.juiceDrinks },
+  { value: "restaurant", label: "Restaurants", fullLabel: "Restaurants", color: "#FFFFFF" },
+  { value: "hotel", label: "Hotels & Stays", fullLabel: "Hotels", color: "#FFFFFF" },
+  { value: "cafe", label: "Cafes & Coffee", fullLabel: "Cafes", color: "#FFFFFF" },
+  { value: "chai", label: "Chai & Tea", fullLabel: "Chai & Tea", color: "#FFFFFF" },
+  { value: "biryani", label: "Biryani Centers", fullLabel: "Biryani", color: "#FFFFFF" },
+  { value: "street-food", label: "Street Food", fullLabel: "Street Food", color: "#FFFFFF" },
+  { value: "south-indian", label: "South Indian", fullLabel: "South Indian", color: "#FFFFFF" },
+  { value: "north-indian", label: "North Indian & Dhabas", fullLabel: "North Indian", color: "#FFFFFF" },
+  { value: "fast-food", label: "Burgers & Rolls", fullLabel: "Fast Food", color: "#FFFFFF" },
+  { value: "desserts", label: "Desserts & Bakeries", fullLabel: "Desserts", color: "#FFFFFF" },
+  { value: "thali", label: "Meals & Thali", fullLabel: "Thali", color: "#FFFFFF" },
+  { value: "juice-drinks", label: "Juices & Drinks", fullLabel: "Juices", color: "#FFFFFF" },
 ];
 
 export const spotTypeMap = Object.fromEntries(spotTypes.map((entry) => [entry.value, entry]));
@@ -42,10 +53,10 @@ export const koramangalaCenter = {
 };
 
 export const levelConfig = [
-  { max: 5, label: "Food Explorer", icon: "🗺️", color: "#E8A020" },
-  { max: 15, label: "Street Scout", icon: "🔍", color: "#1D9E75" },
-  { max: 30, label: "Adda Legend", icon: "🌟", color: "#A26BFF" },
-  { max: Infinity, label: "City Champion", icon: "👑", color: "#FFD76A" },
+  { max: 5, label: "Explorer", icon: "•", color: "#A0A0A0" },
+  { max: 15, label: "Scout", icon: "••", color: "#D4D4D8" },
+  { max: 30, label: "Adda Pro", icon: "•••", color: "#FFFFFF" },
+  { max: Infinity, label: "Legend", icon: "••••", color: "#FFFFFF" },
 ];
 
 export const getLevelFromSpots = (spotsCount = 0) =>
@@ -63,17 +74,17 @@ export const getSpotsToNextLevel = (spotsCount = 0) => {
 };
 
 export const timeAgo = (value) => {
-  if (!value) return "just now";
+  if (!value) return "Just now";
   const then = new Date(value).getTime();
   const diff = Math.max(0, Date.now() - then);
   const mins = Math.floor(diff / 60000);
   const hrs = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins} min ago`;
-  if (hrs < 24) return `${hrs} hr ago`;
-  if (days === 1) return "yesterday";
-  return `${days} days ago`;
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  if (hrs < 24) return `${hrs}h ago`;
+  if (days === 1) return "Yesterday";
+  return `${days}d ago`;
 };
 
 export const haversineKm = (lat1, lng1, lat2, lng2) => {
@@ -104,8 +115,8 @@ export const getDistance = (lat1, lng1, lat2, lng2) => {
 
 export const formatDistance = (meters) => {
   if (typeof meters !== "number") return "Nearby";
-  if (meters < 1000) return `${Math.round(meters / 50) * 50}m away`;
-  return `${(meters / 1000).toFixed(1)} km away`;
+  if (meters < 1000) return `${Math.round(meters / 50) * 50} m`;
+  return `${(meters / 1000).toFixed(1)} km`;
 };
 
 const parseTimeToMinutes = (time) => {
@@ -148,9 +159,9 @@ export const isHiddenGem = (spot) => {
   return avgRating >= 4.3 && reviewCount < 20 && reviewCount > 3;
 };
 
-export const isBudgetBite = (spot) => Number(spot?.priceMax || 0) <= 40;
+export const isBudgetBite = (spot) => Number(spot?.priceMax || 0) <= 60;
 
-export const initials = (name = "AM") =>
+export const initials = (name = "U") =>
   name
     .trim()
     .split(/\s+/)
@@ -159,20 +170,18 @@ export const initials = (name = "AM") =>
     .join("");
 
 export const filterTint = (filter) => {
-  const typeMatch = spotTypes.find((entry) => entry.fullLabel === filter);
-  if (typeMatch) return typeMatch.color;
-  if (filter === "Happening Now 🔥") return palette.happening;
-  if (filter === "Hidden Gem 💎") return palette.gem;
-  if (filter === "Night Owl 🦉") return palette.night;
-  if (filter === "Budget Bites 💸") return palette.budget;
-  return palette.chai;
+  return "#FFFFFF";
 };
 
-export const getTypeMeta = (type) => spotTypeMap[type] || spotTypeMap.chai;
+export const getTypeMeta = (type) => spotTypeMap[type] || spotTypeMap.restaurant || {
+  label: type ? type.toUpperCase() : "FOOD SPOT",
+  fullLabel: type ? type.toUpperCase() : "FOOD SPOT",
+  color: "#FFFFFF",
+};
 
-export const getTypeColor = (type) => getTypeMeta(type).color;
+export const getTypeColor = (type) => "#FFFFFF";
 
-export const formatAreaLabel = (area, fallback = "Your area") => {
+export const formatAreaLabel = (area, fallback = "Bangalore") => {
   const parts = String(area || "")
     .split(",")
     .map((part) => part.trim())
@@ -193,22 +202,16 @@ export const getCityKey = (area) => {
 export const getSpotTags = (spot) => {
   const tags = [];
   if (isHappeningNow(spot)) {
-    tags.push({ label: "🔥 Happening Now", color: palette.happening });
+    tags.push({ label: "Popular Now", color: "#FFFFFF" });
   }
   if (isHiddenGem(spot)) {
-    tags.push({ label: "💎 Hidden Gem", color: palette.gem });
+    tags.push({ label: "Hidden Gem", color: "#FFFFFF" });
   }
   if (closesAfterTen(spot.openTime, spot.closeTime)) {
-    tags.push({ label: "🌙 Open Late", color: palette.night });
+    tags.push({ label: "Open Late", color: "#06C167" });
   }
   if (isBudgetBite(spot)) {
-    tags.push({ label: "💸 Under ₹40", color: palette.budget });
-  }
-  if (Number(spot?.localLoveCount || 0) > 0) {
-    tags.push({
-      label: `✅ ${spot.localLoveCount} locals love this`,
-      color: "#52C97A",
-    });
+    tags.push({ label: "Budget Friendly", color: "#FFFFFF" });
   }
   return tags;
 };

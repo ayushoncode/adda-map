@@ -4,9 +4,13 @@ import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 const supportedSpotTypes = new Set([
+  "restaurant",
+  "hotel",
+  "cafe",
   "chai",
   "biryani",
   "street-food",
+  "dhaba",
   "thali",
   "snacks",
   "desserts",
@@ -14,6 +18,7 @@ const supportedSpotTypes = new Set([
   "north-indian",
   "fast-food",
   "juice-drinks",
+  "bar-pub",
 ]);
 
 const haversineDistance = (lat1, lng1, lat2, lng2) => {
@@ -316,12 +321,19 @@ router.get("/:id", async (req, res) => {
     const reviewsSnap = await db
       .collection("reviews")
       .where("spotId", "==", req.params.id)
-      .orderBy("timestamp", "desc")
       .get();
 
-    const reviews = reviewsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const reviews = reviewsSnap.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .sort((a, b) => {
+        const timeA = new Date(a.createdAt || a.timestamp || 0).getTime();
+        const timeB = new Date(b.createdAt || b.timestamp || 0).getTime();
+        return timeB - timeA;
+      });
+
     return res.json({ spot: { id: spotSnap.id, ...spotSnap.data() }, reviews });
   } catch (error) {
+    console.error("Failed to load spot details:", error);
     return res.status(500).json({ error: "Unable to load spot details" });
   }
 });
@@ -473,6 +485,46 @@ router.put("/:id/reviews/:reviewId/helpful", requireAuth, async (req, res) => {
     return res.json({ message: "Helpful vote added" });
   } catch (error) {
     return res.status(500).json({ error: "Unable to mark review helpful" });
+  }
+});
+
+router.delete("/:id", requireAuth, async (req, res) => {
+  try {
+    const spotRef = db.collection("spots").doc(req.params.id);
+    const spotSnap = await spotRef.get();
+
+    if (!spotSnap.exists) {
+      return res.status(404).json({ error: "Spot not found" });
+    }
+
+    const spot = spotSnap.data();
+
+    // Check if the authenticated user is the one who created it
+    if (spot.pinnedBy !== req.user.uid && spot.firstPinner?.userId !== req.user.uid) {
+      return res.status(403).json({ error: "Only the scout who pinned this spot can delete it" });
+    }
+
+    const batch = db.batch();
+    batch.delete(spotRef);
+
+    // Also remove associated reviews
+    const reviewsSnap = await db.collection("reviews").where("spotId", "==", req.params.id).get();
+    reviewsSnap.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    // Decrement user's spots count
+    const userRef = db.collection("users").doc(req.user.uid);
+    batch.update(userRef, {
+      spotsCount: FieldValue.increment(-1),
+      updatedAt: new Date().toISOString(),
+    });
+
+    await batch.commit();
+    return res.json({ message: "Spot deleted successfully", spotId: req.params.id });
+  } catch (error) {
+    console.error("Error deleting spot:", error);
+    return res.status(500).json({ error: "Unable to delete spot" });
   }
 });
 

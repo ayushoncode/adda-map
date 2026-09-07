@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import api from "../api";
 import Map from "../components/Map";
 import SpotCard from "../components/SpotCard";
 import {
-  filterTint,
   formatAreaLabel,
   getDistance,
   getTypeColor,
@@ -14,14 +13,21 @@ import {
   isNightOwlSpot,
   spotTypes,
 } from "../utils";
+import { IconSearch, IconMap, IconList, IconMoon, IconPlus, IconLocation } from "../icons";
 
 const filters = [
-  { label: "All", color: "#E8A020" },
-  ...spotTypes.map((type) => ({ label: type.fullLabel, color: type.color })),
-  { label: "Happening Now 🔥", color: "#FF4444" },
-  { label: "Hidden Gem 💎", color: "#9B59B6" },
-  { label: "Night Owl 🦉", color: "#1F3A5F" },
-  { label: "Budget Bites 💸", color: "#1D9E75" },
+  { label: "All", value: "all" },
+  { label: "Restaurants", value: "restaurant" },
+  { label: "Hotels", value: "hotel" },
+  { label: "Cafes", value: "cafe" },
+  { label: "Biryani", value: "biryani" },
+  { label: "Chai & Tea", value: "chai" },
+  { label: "Street Food", value: "street-food" },
+  { label: "South Indian", value: "south-indian" },
+  { label: "North Indian", value: "north-indian" },
+  { label: "Burgers & Fast Food", value: "fast-food" },
+  { label: "Late Night", value: "nightowl" },
+  { label: "Popular Now", value: "popular" },
 ];
 
 export default function Home({
@@ -32,30 +38,63 @@ export default function Home({
   refreshKey,
   userLocation,
   setUserLocation,
-  onAccentChange,
 }) {
   const [activeFilter, setActiveFilter] = useState("All");
+  const [activeViewMode, setActiveViewMode] = useState("all"); // 'all' (Map+Cards), 'grid' (Cards Only), 'night' (Late Night)
   const [searchTerm, setSearchTerm] = useState("");
   const [spots, setSpots] = useState([]);
   const [loading, setLoading] = useState(true);
-  const effectiveLocation =
-    userLocation ||
-    (typeof userProfile?.lat === "number" && typeof userProfile?.lng === "number"
-      ? { lat: userProfile.lat, lng: userProfile.lng }
-      : null);
+  const locationRequestStarted = useRef(false);
+
+  const userLat = userLocation?.lat ?? userProfile?.lat ?? null;
+  const userLng = userLocation?.lng ?? userProfile?.lng ?? null;
+
+  const effectiveLocation = useMemo(() => {
+    if (typeof userLat === "number" && typeof userLng === "number") {
+      return {
+        lat: userLat,
+        lng: userLng,
+        accuracy: userLocation?.accuracy,
+      };
+    }
+    return null;
+  }, [userLat, userLng, userLocation?.accuracy]);
 
   useEffect(() => {
+    if (effectiveLocation || locationRequestStarted.current) return;
+    locationRequestStarted.current = true;
+
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setUserLocation?.({
+          lat: coords.latitude,
+          lng: coords.longitude,
+          accuracy: coords.accuracy,
+        });
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+    );
+  }, [effectiveLocation, setUserLocation]);
+
+  useEffect(() => {
+    let ignore = false;
     const params = new URLSearchParams();
     const center = effectiveLocation || { lat: 12.9352, lng: 77.6245 };
     params.set("lat", center.lat);
     params.set("lng", center.lng);
     if (userProfile?.area) params.set("area", userProfile.area);
-    if (activeFilter === "Night Owl 🦉") params.set("filter", "nightowl");
+    if (activeFilter === "Late Night" || activeViewMode === "night") {
+      params.set("filter", "nightowl");
+    }
 
     setLoading(true);
     api
       .get(`/spots?${params.toString()}`)
       .then((response) => {
+        if (ignore) return;
         const withViewModel = (response.data.spots || []).map((spot) => ({
           ...spot,
           recentReviewers: spot.recentReviewers || [],
@@ -64,128 +103,250 @@ export default function Home({
           .map((spot) => ({
             ...spot,
             distanceMeters: effectiveLocation
-              ? getDistance(effectiveLocation.lat, effectiveLocation.lng, Number(spot.lat), Number(spot.lng))
+              ? getDistance(
+                  effectiveLocation.lat,
+                  effectiveLocation.lng,
+                  Number(spot.lat),
+                  Number(spot.lng)
+                )
               : null,
           }))
-          .sort((a, b) => (a.distanceMeters || Number.MAX_SAFE_INTEGER) - (b.distanceMeters || Number.MAX_SAFE_INTEGER));
+          .sort(
+            (a, b) =>
+              (a.distanceMeters || Number.MAX_SAFE_INTEGER) -
+              (b.distanceMeters || Number.MAX_SAFE_INTEGER)
+          );
         setSpots(normalized);
       })
-      .finally(() => setLoading(false));
-  }, [activeFilter, effectiveLocation, refreshKey, userProfile?.area]);
+      .catch((err) => {
+        console.error("Failed to load spots:", err);
+        if (!ignore) setSpots([]);
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [activeFilter, activeViewMode, userLat, userLng, refreshKey, userProfile?.area]);
 
   const filteredSpots = useMemo(() => {
-    const selectedType = spotTypes.find((type) => type.fullLabel === activeFilter)?.value;
+    let result = spots;
 
-    switch (activeFilter) {
-      case "Happening Now 🔥":
-        return spots.filter((spot) => isActiveWithin24Hours(spot));
-      case "Hidden Gem 💎":
-        return spots.filter((spot) => isHiddenGem(spot));
-      case "Night Owl 🦉":
-        return spots.filter((spot) => isNightOwlSpot(spot));
-      case "Budget Bites 💸":
-        return spots.filter((spot) => isBudgetBite(spot));
-      default:
-        return selectedType ? spots.filter((spot) => spot.type === selectedType) : spots;
+    if (activeViewMode === "night" || activeFilter === "Late Night") {
+      return result.filter((spot) => isNightOwlSpot(spot));
     }
-  }, [activeFilter, spots]);
+
+    if (activeFilter === "Popular Now") {
+      return result.filter((spot) => isActiveWithin24Hours(spot));
+    }
+
+    const filterObj = filters.find((f) => f.label === activeFilter);
+    if (filterObj && filterObj.value !== "all") {
+      return result.filter((spot) => spot.type === filterObj.value);
+    }
+
+    return result;
+  }, [activeFilter, activeViewMode, spots]);
 
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
   const visibleSpots = useMemo(() => {
     if (!normalizedSearchTerm) return filteredSpots;
-    return filteredSpots.filter((spot) => spot.name?.toLowerCase().includes(normalizedSearchTerm));
+    return filteredSpots.filter(
+      (spot) =>
+        spot.name?.toLowerCase().includes(normalizedSearchTerm) ||
+        spot.type?.toLowerCase().includes(normalizedSearchTerm) ||
+        spot.address?.toLowerCase().includes(normalizedSearchTerm)
+    );
   }, [filteredSpots, normalizedSearchTerm]);
 
-  const accent = useMemo(() => filterTint(activeFilter), [activeFilter]);
   const center = effectiveLocation || { lat: 12.9352, lng: 77.6245 };
 
-  useEffect(() => {
-    onAccentChange?.(accent);
-  }, [accent, onAccentChange]);
-
   return (
-    <section className="home-screen">
-      <header className="top-bar">
-        <h1 className="logo small">Adda <span>Map</span></h1>
-        <div className="area-pill">{formatAreaLabel(userProfile?.area)}</div>
-        <button type="button" className="avatar-button" onClick={onOpenProfile} style={{ background: userProfile?.avatarColor || "#384355" }}>
-          {initials(userProfile?.name)}
-        </button>
-      </header>
-
-      <div className="pill-row">
-        {filters.map((filter) => (
-          <button
-            key={filter.label}
-            type="button"
-            className={`filter-pill ${activeFilter === filter.label ? "active" : ""}`}
-            style={activeFilter === filter.label ? { background: filter.color, borderColor: filter.color } : undefined}
-            onClick={() => setActiveFilter(filter.label)}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
-
-      <label className="search-shell">
-        <span className="search-icon">🔍</span>
-        <input
-          type="search"
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Search for biryani, chai, momos..."
-        />
-      </label>
-
-      <Map
-        spots={visibleSpots}
-        center={center}
-        userLocation={effectiveLocation}
-        setUserLocation={setUserLocation}
-        userArea={userProfile?.area}
-        currentUser={userProfile}
-        onSpotClick={onOpenSpot}
-      />
-
-      <div className="spots-list">
-        {loading ? (
-          Array.from({ length: 3 }).map((_, index) => <div key={index} className="spot-card skeleton-card" />)
-        ) : visibleSpots.length ? (
-          visibleSpots.map((spot) => (
-            <SpotCard key={spot.id} spot={spot} userLocation={effectiveLocation} onOpen={onOpenSpot} />
-          ))
-        ) : (
-          <div className="empty-card empty-map-state">
-            <strong>
-              {normalizedSearchTerm
-                ? `No spots found for "${searchTerm.trim()}" 📍`
-                : activeFilter === "Night Owl 🦉"
-                  ? "No late night spots open right now 🌙"
-                  : "No spots here yet 📍"}
-            </strong>
-            <p>
-              {normalizedSearchTerm
-                ? `No spots found for "${searchTerm.trim()}" — be the first to add one!`
-                : activeFilter === "Night Owl 🦉"
-                  ? "Check back after 9 PM or add one!"
-                  : "Be the first to add a food spot in your area!"}
+    <section className="home-page-container">
+      {/* Uber Hero Header */}
+      <div className="page-hero">
+        <div className="page-hero-header">
+          <div className="page-hero-titles">
+            <h1 className="uber-main-title">
+              {activeViewMode === "night"
+                ? "Late Night Dining"
+                : "Explore Spots & Dining"}
+            </h1>
+            <p className="uber-subtitle">
+              {activeViewMode === "night"
+                ? "Verified restaurants, food addas and spots open right now."
+                : "Top rated hotels, restaurants, cafes, and local food addas in Bangalore."}
             </p>
-            {!normalizedSearchTerm && activeFilter !== "Night Owl 🦉" && <p>Your pin could help hundreds of people find great food.</p>}
-            <button type="button" className="primary-button large" onClick={onOpenAdd}>
-              + Add Spot
+          </div>
+
+          <div className="page-hero-actions">
+            <button
+              type="button"
+              className="uber-cta-btn"
+              onClick={onOpenAdd}
+            >
+              <IconPlus size={16} />
+              <span>Add Spot</span>
             </button>
           </div>
-        )}
+        </div>
+
+        {/* Uber Segmented Capsule Switcher */}
+        <div className="cmhub-segmented-shell">
+          <div className="cmhub-segmented-tabs">
+            <button
+              type="button"
+              className={`cmhub-segment-btn ${
+                activeViewMode === "all" ? "active" : ""
+              }`}
+              onClick={() => setActiveViewMode("all")}
+            >
+              <IconMap size={16} />
+              <span>Map & List</span>
+            </button>
+            <button
+              type="button"
+              className={`cmhub-segment-btn ${
+                activeViewMode === "grid" ? "active" : ""
+              }`}
+              onClick={() => setActiveViewMode("grid")}
+            >
+              <IconList size={16} />
+              <span>List Only</span>
+            </button>
+            <button
+              type="button"
+              className={`cmhub-segment-btn ${
+                activeViewMode === "night" ? "active" : ""
+              }`}
+              onClick={() => {
+                setActiveViewMode("night");
+                setActiveFilter("Late Night");
+              }}
+            >
+              <IconMoon size={16} />
+              <span>Open Late</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <button
-        type="button"
-        className="floating-add"
-        style={{ background: spotTypes.find((type) => type.fullLabel === activeFilter)?.color || getTypeColor("chai") }}
-        onClick={onOpenAdd}
-      >
-        +
-      </button>
+      {/* Filter & Search Controls */}
+      <div className="filter-control-shell">
+        <div className="cmhub-search-bar">
+          <IconSearch size={18} className="cmhub-search-icon" />
+          <input
+            type="search"
+            className="cmhub-search-input"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search hotels, restaurants, cafes, biryani, burgers..."
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              className="cmhub-search-clear"
+              onClick={() => setSearchTerm("")}
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* Categories Carousel */}
+        <div className="cmhub-filter-scroll">
+          {filters.map((filter) => (
+            <button
+              key={filter.label}
+              type="button"
+              className={`cmhub-filter-chip ${
+                activeFilter === filter.label ? "active" : ""
+              }`}
+              onClick={() => setActiveFilter(filter.label)}
+            >
+              <span>{filter.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Interactive Map (Shown when activeViewMode is 'all') */}
+      {activeViewMode !== "grid" && (
+        <Map
+          spots={visibleSpots}
+          center={center}
+          userLocation={effectiveLocation}
+          setUserLocation={setUserLocation}
+          currentUser={userProfile}
+          onSpotClick={onOpenSpot}
+          onAddSpot={onOpenAdd}
+        />
+      )}
+
+      {/* Spot Cards Grid */}
+      <div className="spots-section-header">
+        <h2 className="spots-section-title">
+          <span>
+            {activeFilter === "All"
+              ? "All Curated Spots"
+              : activeFilter}
+          </span>
+          <span className="spots-count-badge">
+            {visibleSpots.length}
+          </span>
+        </h2>
+      </div>
+
+      {loading ? (
+        <div className="spots-grid">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div key={idx} className="skeleton-card" />
+          ))}
+        </div>
+      ) : visibleSpots.length ? (
+        <div className="spots-grid">
+          {visibleSpots.map((spot) => (
+            <SpotCard
+              key={spot.id}
+              spot={spot}
+              userLocation={effectiveLocation}
+              onOpen={onOpenSpot}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="cmhub-empty-box">
+          <div className="uber-empty-icon-circle">
+            <IconLocation size={24} />
+          </div>
+          <strong>
+            {normalizedSearchTerm
+              ? `No results for "${searchTerm.trim()}"`
+              : activeFilter === "Late Night"
+              ? "No late-night spots open right now"
+              : activeFilter === "All"
+              ? "No spots added in this area yet"
+              : `No ${activeFilter.toLowerCase()} added yet`}
+          </strong>
+          <p>
+            {normalizedSearchTerm
+              ? "Try searching another hotel, restaurant or craving."
+              : "Explore the campus and be the first student to pin this spot!"}
+          </p>
+          <button
+            type="button"
+            className="uber-cta-btn"
+            onClick={onOpenAdd}
+            style={{ marginTop: 12 }}
+          >
+            <IconPlus size={16} />
+            <span>Add Spot</span>
+          </button>
+        </div>
+      )}
     </section>
   );
 }
