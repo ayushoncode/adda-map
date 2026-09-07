@@ -15,14 +15,35 @@ export default function Header({
     <header className="cmhub-header">
       <div className="cmhub-header-inner">
         {/* Left Branding - Bold Clean Logo */}
-        <div className="cmhub-brand-group">
+        <div className="cmhub-brand-group" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <a
+            href="https://cmhub.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cmhub-external-brand-link"
+            title="Go to cmhub.in"
+            style={{
+              fontWeight: 900,
+              fontStyle: "italic",
+              fontSize: "1.25rem",
+              color: "#FFFFFF",
+              letterSpacing: "-0.03em",
+              display: "inline-flex",
+              alignItems: "center",
+              transition: "opacity 150ms ease",
+            }}
+          >
+            cmhub
+          </a>
+          <span style={{ color: "#71717A", fontWeight: 400, fontSize: "0.95rem" }}>×</span>
           <button
             type="button"
             onClick={() => onTabChange("map")}
             className="uber-brand-btn"
             title="Adda Map"
+            style={{ padding: 0 }}
           >
-            <span className="uber-logo-text">ADDA</span>
+            <img src="/adda-logo-white.png" alt="adda" className="adda-custom-logo" style={{ height: 24 }} />
             <span className="uber-logo-badge">MAP</span>
           </button>
         </div>

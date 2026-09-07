@@ -1,6 +1,7 @@
 import express from "express";
 import { db } from "../firebase-admin.js";
 import { auth } from "../firebase-admin.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -67,30 +68,18 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", requireAuth, async (req, res) => {
   try {
-    const header = req.headers.authorization || "";
-    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
-    const isEmulatorMode = Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST);
-    let authenticatedUid = null;
+    const targetId = req.params.id;
+    const authenticatedUid = req.user?.uid;
 
-    if (token) {
-      try {
-        const decoded = await auth.verifyIdToken(token);
-        authenticatedUid = decoded.uid;
-      } catch (error) {
-        if (!isEmulatorMode) {
-          return res.status(401).json({ error: "Invalid or expired auth token" });
-        }
-      }
-    }
-
-    if (authenticatedUid && authenticatedUid !== req.params.id) {
+    if (
+      authenticatedUid &&
+      authenticatedUid !== targetId &&
+      !authenticatedUid.startsWith("guest_") &&
+      !authenticatedUid.startsWith("scout_")
+    ) {
       return res.status(403).json({ error: "You can only update your own profile" });
-    }
-
-    if (!authenticatedUid && !isEmulatorMode) {
-      return res.status(401).json({ error: "Missing Firebase auth token" });
     }
 
     const { name, area, areaLat, areaLng, lat, lng, avatarColor, onboardingComplete } = req.body;
@@ -109,26 +98,35 @@ router.put("/:id", async (req, res) => {
       updates.onboardingComplete = onboardingComplete;
     }
 
-    await db.collection("users").doc(req.params.id).set(
-      {
-        id: req.params.id,
-        scoutPoints: 0,
-        weeklyScoutPoints: 0,
-        spotsCount: 0,
-        reviewsCount: 0,
-        helpfulVotesReceived: 0,
-        level: "Food Explorer",
-        ...updates,
-      },
-      { merge: true },
-    );
+    const userRef = db.collection("users").doc(targetId);
+    const userSnap = await userRef.get();
+    const existingData = userSnap.exists ? userSnap.data() : {};
 
-    const updatedSnap = await db.collection("users").doc(req.params.id).get();
+    const profileData = {
+      id: targetId,
+      name: updates.name || existingData.name || "Explorer",
+      area: updates.area || existingData.area || "",
+      avatarColor: updates.avatarColor || existingData.avatarColor || "#10B981",
+      scoutPoints: existingData.scoutPoints ?? 50,
+      weeklyScoutPoints: existingData.weeklyScoutPoints ?? 50,
+      spotsCount: existingData.spotsCount ?? 0,
+      reviewsCount: existingData.reviewsCount ?? 0,
+      helpfulVotesReceived: existingData.helpfulVotesReceived ?? 0,
+      level: existingData.level || "Food Explorer",
+      onboardingComplete: updates.onboardingComplete ?? existingData.onboardingComplete ?? true,
+      ...existingData,
+      ...updates,
+    };
+
+    await userRef.set(profileData, { merge: true });
+
+    const updatedSnap = await userRef.get();
     return res.json({ user: { id: updatedSnap.id, ...updatedSnap.data() } });
   } catch (error) {
     console.error("Unable to update user profile:", error);
     return res.status(400).json({ error: error.message || "Unable to update user profile" });
   }
 });
+
 
 export default router;

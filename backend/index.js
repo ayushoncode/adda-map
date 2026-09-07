@@ -36,8 +36,9 @@ app.use(
         return;
       }
 
-      callback(new Error(`CORS blocked for origin: ${origin}`));
+      callback(null, true);
     },
+    credentials: true,
   }),
 );
 app.use(express.json({ limit: "10mb" }));

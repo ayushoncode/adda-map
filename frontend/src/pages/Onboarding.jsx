@@ -143,10 +143,19 @@ export default function Onboarding({ authUser, onComplete, onToast }) {
   return (
     <main className="auth-fullscreen">
       <div className="auth-glass-card" style={{ maxWidth: 480 }}>
-        <div className="auth-logo-badge">
-          <span style={{ color: "#10B981" }}>●</span>
-          <span style={{ fontWeight: 900, fontStyle: "italic" }}>cmhub</span>
-          <span style={{ color: "#71717A" }}>/</span>
+        <div className="auth-logo-badge" style={{ gap: "8px", padding: "8px 16px", display: "inline-flex", alignItems: "center" }}>
+          <a
+            href="https://cmhub.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Go to cmhub.in"
+            style={{ fontWeight: 900, fontStyle: "italic", fontSize: "1.25rem", color: "#FFFFFF", letterSpacing: "-0.03em", textDecoration: "none" }}
+          >
+            cmhub
+          </a>
+          <span style={{ color: "#71717A", fontWeight: 400, margin: "0 2px" }}>×</span>
+          <img src="/adda-logo-white.png" alt="adda" className="adda-custom-logo-lg" style={{ height: 26 }} />
+          <span style={{ color: "#71717A", margin: "0 2px" }}>/</span>
           <span style={{ color: "#FFFFFF", fontWeight: 700 }}>Profile Setup</span>
         </div>
 

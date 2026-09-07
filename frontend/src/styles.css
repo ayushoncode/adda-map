@@ -2407,6 +2407,18 @@ a {
 .uber-brand-btn:hover {
   opacity: 0.85;
 }
+.adda-custom-logo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+.adda-custom-logo-lg {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
 .uber-logo-text {
   font-size: 1.35rem;
   font-weight: 900;
