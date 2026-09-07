@@ -9,10 +9,12 @@ export default function Header({
   onOpenAdd,
   onLogout,
 }) {
+  const isGuest = userProfile?.isGuest || !userProfile?.id || userProfile?.id === "guest_scout";
+
   return (
     <header className="cmhub-header">
       <div className="cmhub-header-inner">
-        {/* Left Branding - Uber Style Bold Clean Text */}
+        {/* Left Branding - Bold Clean Logo */}
         <div className="cmhub-brand-group">
           <button
             type="button"
@@ -37,19 +39,19 @@ export default function Header({
           </button>
           <button
             type="button"
+            className={`cmhub-nav-pill ${currentTab === "leaderboard" ? "active" : ""}`}
+            onClick={() => onTabChange("leaderboard")}
+          >
+            <IconTrophy size={16} />
+            <span>Top Scouts</span>
+          </button>
+          <button
+            type="button"
             className={`cmhub-nav-pill ${currentTab === "feed" ? "active" : ""}`}
             onClick={() => onTabChange("feed")}
           >
             <IconActivity size={16} />
             <span>Activity</span>
-          </button>
-          <button
-            type="button"
-            className={`cmhub-nav-pill ${currentTab === "leaderboard" ? "active" : ""}`}
-            onClick={() => onTabChange("profile")}
-          >
-            <IconTrophy size={16} />
-            <span>Top Scouts</span>
           </button>
           <button
             type="button"
@@ -80,19 +82,30 @@ export default function Header({
           >
             <div
               className="cmhub-user-avatar"
-              style={{ background: userProfile?.avatarColor || "#262626", color: "#FFFFFF" }}
+              style={{ background: userProfile?.avatarColor || "#10B981", color: "#FFFFFF" }}
             >
-              {initials(userProfile?.name)}
+              {initials(userProfile?.name || "Scout")}
             </div>
             <div className="cmhub-user-meta">
               <span className="cmhub-user-name">
-                {userProfile?.name || "Account"}
+                {userProfile?.name || "Scout"}
               </span>
-              <span className="cmhub-verified-badge">
-                VERIFIED
+              <span className={`cmhub-verified-badge ${isGuest ? "guest-mode-badge" : ""}`}>
+                {isGuest ? "GUEST" : "VERIFIED"}
               </span>
             </div>
           </button>
+
+          {onLogout && (
+            <button
+              type="button"
+              className="header-logout-btn"
+              onClick={onLogout}
+              title={isGuest ? "Go to Login Page" : "Sign Out"}
+            >
+              {isGuest ? "Sign In" : "Log Out"}
+            </button>
+          )}
         </div>
       </div>
     </header>

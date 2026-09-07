@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 import api from "../api";
+import { IconLocation, IconCheck, IconCrosshair, IconChevronRight } from "../icons";
 
 const colors = ["#10B981", "#F59E0B", "#8B5CF6", "#3B82F6", "#EC4899", "#F97316"];
 
@@ -199,7 +202,7 @@ export default function Onboarding({ authUser, onComplete, onToast }) {
               onClick={useCurrentLocation}
               disabled={detectingLocation}
             >
-              <span>{locationDetected ? "✓" : "📍"}</span>
+              <span>{locationDetected ? <IconCheck size={16} color="#10B981" /> : <IconCrosshair size={16} />}</span>
               <span>
                 {detectingLocation
                   ? "Detecting location..."
@@ -264,7 +267,9 @@ export default function Onboarding({ authUser, onComplete, onToast }) {
                           fontSize: "0.85rem",
                           color: "#E4E4E7",
                           borderBottom: "1px solid #222226",
-                          display: "block",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
@@ -276,7 +281,8 @@ export default function Onboarding({ authUser, onComplete, onToast }) {
                           setLocationDetected(true);
                         }}
                       >
-                        📍 {item.label}
+                        <IconLocation size={14} color="#8E8E93" />
+                        <span>{item.label}</span>
                       </button>
                     ))
                   )}
@@ -317,7 +323,16 @@ export default function Onboarding({ authUser, onComplete, onToast }) {
           onClick={submit}
           disabled={saving}
         >
-          {saving ? "Setting up..." : "Continue to Adda Map ➔"}
+          {saving ? "Setting up..." : "Continue to Adda Map"}
+        </button>
+
+        <button
+          type="button"
+          className="uber-secondary-btn"
+          style={{ width: "100%", marginTop: "10px", justifyContent: "center", color: "#EF4444" }}
+          onClick={() => signOut(auth)}
+        >
+          Sign Out / Use Another Account
         </button>
       </div>
     </main>

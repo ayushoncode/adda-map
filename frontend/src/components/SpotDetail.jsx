@@ -251,16 +251,21 @@ export default function SpotDetail({
                     key={star}
                     type="button"
                     style={{
-                      color: rating >= star ? "#FFFFFF" : "#3F3F46",
                       transition: "transform 150ms ease",
                       background: "none",
                       border: "none",
                       cursor: "pointer",
-                      fontSize: "1.6rem",
+                      padding: 0,
+                      display: "flex",
+                      alignItems: "center",
                     }}
                     onClick={() => setRating(star)}
                   >
-                    ★
+                    <IconStar
+                      size={24}
+                      fill={rating >= star ? "#FFFFFF" : "transparent"}
+                      color={rating >= star ? "#FFFFFF" : "#3F3F46"}
+                    />
                   </button>
                 ))}
               </div>
@@ -333,8 +338,9 @@ export default function SpotDetail({
                         </div>
                       </div>
 
-                      <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: "0.88rem" }}>
-                        ★ {rev.rating}
+                      <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: "0.88rem", display: "flex", alignItems: "center", gap: 4 }}>
+                        <IconStar size={13} fill="#FFFFFF" />
+                        <span>{rev.rating}</span>
                       </div>
                     </div>
 

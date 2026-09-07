@@ -40,9 +40,9 @@ router.get("/:id", async (req, res) => {
     const userSnap = await db.collection("users").doc(id).get();
 
     if (!userSnap.exists) {
-      return res.json({
-        user: buildDefaultUserProfile(id),
-        pinnedSpots: [],
+      return res.status(404).json({
+        error: "User profile not found",
+        needsOnboarding: true,
       });
     }
 

@@ -1,3 +1,5 @@
+import { IconCheck, IconAlert, IconInfo } from "../icons";
+
 export default function Toast({ toasts }) {
   if (!toasts?.length) return null;
 
@@ -14,7 +16,15 @@ export default function Toast({ toasts }) {
               : ""
           }`}
         >
-          <span>{toast.type === "error" ? "⚠️" : toast.type === "success" ? "✓" : "ℹ️"}</span>
+          <span style={{ display: "inline-flex", alignItems: "center" }}>
+            {toast.type === "error" ? (
+              <IconAlert size={16} color="#EF4444" />
+            ) : toast.type === "success" ? (
+              <IconCheck size={16} color="#10B981" />
+            ) : (
+              <IconInfo size={16} color="#3B82F6" />
+            )}
+          </span>
           <span>{toast.message}</span>
         </div>
       ))}

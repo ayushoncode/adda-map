@@ -13,21 +13,20 @@ import {
   isNightOwlSpot,
   spotTypes,
 } from "../utils";
-import { IconSearch, IconMap, IconList, IconMoon, IconPlus, IconLocation } from "../icons";
+import { IconSearch, IconMap, IconList, IconMoon, IconPlus, IconLocation, IconClose } from "../icons";
 
 const filters = [
   { label: "All", value: "all" },
-  { label: "Restaurants", value: "restaurant" },
-  { label: "Hotels", value: "hotel" },
-  { label: "Cafes", value: "cafe" },
-  { label: "Biryani", value: "biryani" },
   { label: "Chai & Tea", value: "chai" },
+  { label: "Biryani", value: "biryani" },
+  { label: "Cafes", value: "cafe" },
+  { label: "Late Night", value: "nightowl" },
   { label: "Street Food", value: "street-food" },
   { label: "South Indian", value: "south-indian" },
   { label: "North Indian", value: "north-indian" },
-  { label: "Burgers & Fast Food", value: "fast-food" },
-  { label: "Late Night", value: "nightowl" },
-  { label: "Popular Now", value: "popular" },
+  { label: "Fast Food", value: "fast-food" },
+  { label: "Restaurants", value: "restaurant" },
+  { label: "Hotels", value: "hotel" },
 ];
 
 export default function Home({
@@ -40,7 +39,7 @@ export default function Home({
   setUserLocation,
 }) {
   const [activeFilter, setActiveFilter] = useState("All");
-  const [activeViewMode, setActiveViewMode] = useState("all"); // 'all' (Map+Cards), 'grid' (Cards Only), 'night' (Late Night)
+  const [activeViewMode, setActiveViewMode] = useState("all"); // 'all' (Map+List), 'grid' (List Only), 'night' (Late Night)
   const [searchTerm, setSearchTerm] = useState("");
   const [spots, setSpots] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -138,10 +137,6 @@ export default function Home({
       return result.filter((spot) => isNightOwlSpot(spot));
     }
 
-    if (activeFilter === "Popular Now") {
-      return result.filter((spot) => isActiveWithin24Hours(spot));
-    }
-
     const filterObj = filters.find((f) => f.label === activeFilter);
     if (filterObj && filterObj.value !== "all") {
       return result.filter((spot) => spot.type === filterObj.value);
@@ -165,10 +160,14 @@ export default function Home({
 
   return (
     <section className="home-page-container">
-      {/* Uber Hero Header */}
+      {/* Sleek Hero Header */}
       <div className="page-hero">
         <div className="page-hero-header">
           <div className="page-hero-titles">
+            <div className="landing-verified-badge">
+              <span className="live-dot" />
+              <span>COMMUNITY VERIFIED • BANGALORE</span>
+            </div>
             <h1 className="uber-main-title">
               {activeViewMode === "night"
                 ? "Late Night Dining"
@@ -176,8 +175,8 @@ export default function Home({
             </h1>
             <p className="uber-subtitle">
               {activeViewMode === "night"
-                ? "Verified restaurants, food addas and spots open right now."
-                : "Top rated hotels, restaurants, cafes, and local food addas in Bangalore."}
+                ? "Verified food addas and restaurants open right now in Bangalore."
+                : "Curated cafes, chai tapris, and local food addas pinned by students and scouts."}
             </p>
           </div>
 
@@ -193,7 +192,7 @@ export default function Home({
           </div>
         </div>
 
-        {/* Uber Segmented Capsule Switcher */}
+        {/* View Mode Segmented Switcher */}
         <div className="cmhub-segmented-shell">
           <div className="cmhub-segmented-tabs">
             <button
@@ -242,7 +241,7 @@ export default function Home({
             className="cmhub-search-input"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search hotels, restaurants, cafes, biryani, burgers..."
+            placeholder="Search cafes, biryani, street food, tapris, or area..."
           />
           {searchTerm && (
             <button
@@ -251,12 +250,12 @@ export default function Home({
               onClick={() => setSearchTerm("")}
               aria-label="Clear search"
             >
-              ✕
+              <IconClose size={14} />
             </button>
           )}
         </div>
 
-        {/* Categories Carousel */}
+        {/* Minimalist Categories Horizontal Carousel */}
         <div className="cmhub-filter-scroll">
           {filters.map((filter) => (
             <button
@@ -286,7 +285,7 @@ export default function Home({
         />
       )}
 
-      {/* Spot Cards Grid */}
+      {/* Spots Section Title */}
       <div className="spots-section-header">
         <h2 className="spots-section-title">
           <span>
@@ -300,10 +299,11 @@ export default function Home({
         </h2>
       </div>
 
+      {/* Spots Grid or Empty State */}
       {loading ? (
         <div className="spots-grid">
-          {Array.from({ length: 6 }).map((_, idx) => (
-            <div key={idx} className="skeleton-card" />
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className="skeleton-card" style={{ height: 220, borderRadius: 20 }} />
           ))}
         </div>
       ) : visibleSpots.length ? (
@@ -324,26 +324,26 @@ export default function Home({
           </div>
           <strong>
             {normalizedSearchTerm
-              ? `No results for "${searchTerm.trim()}"`
+              ? `No spots found for "${searchTerm.trim()}"`
               : activeFilter === "Late Night"
               ? "No late-night spots open right now"
               : activeFilter === "All"
-              ? "No spots added in this area yet"
+              ? "No spots added in Bangalore yet"
               : `No ${activeFilter.toLowerCase()} added yet`}
           </strong>
           <p>
             {normalizedSearchTerm
-              ? "Try searching another hotel, restaurant or craving."
-              : "Explore the campus and be the first student to pin this spot!"}
+              ? "Try searching another dish, cafe, or neighborhood."
+              : "Be the founding scout to pin this spot on the map and earn +150 scout points."}
           </p>
           <button
             type="button"
             className="uber-cta-btn"
             onClick={onOpenAdd}
-            style={{ marginTop: 12 }}
+            style={{ marginTop: 14 }}
           >
             <IconPlus size={16} />
-            <span>Add Spot</span>
+            <span>Pin a Spot Now (+150 Pts)</span>
           </button>
         </div>
       )}

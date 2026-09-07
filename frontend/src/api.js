@@ -11,8 +11,23 @@ const api = axios.create({
 api.interceptors.request.use(async (config) => {
   const user = auth.currentUser;
   if (user) {
-    const token = await user.getIdToken();
-    config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const token = await user.getIdToken();
+      config.headers.Authorization = `Bearer ${token}`;
+    } catch (err) {
+      console.warn("Failed to get auth token:", err);
+    }
+  } else {
+    // Generate or get persistent guest scout ID
+    let guestId = localStorage.getItem("adda_guest_id");
+    if (!guestId) {
+      guestId = "scout_" + Math.random().toString(36).substring(2, 9);
+      localStorage.setItem("adda_guest_id", guestId);
+    }
+    const guestName = localStorage.getItem("adda_guest_name") || "Guest Scout";
+    config.headers.Authorization = `Bearer ${guestId}`;
+    config.headers["x-guest-id"] = guestId;
+    config.headers["x-guest-name"] = guestName;
   }
   return config;
 });
