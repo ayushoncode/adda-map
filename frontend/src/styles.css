@@ -2209,6 +2209,285 @@ a {
   }
 }
 
+/* Final phone layout pass: keep the map and discovery controls app-like on small screens. */
+@media (max-width: 600px) {
+  .main-content-shell {
+    padding: 68px 0 calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .home-page-container {
+    width: 100%;
+    padding: 12px 14px 24px !important;
+  }
+
+  .cmhub-header-inner {
+    gap: 8px;
+  }
+
+  .cmhub-brand-group {
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .cmhub-external-brand-link,
+  .cmhub-brand-group > span {
+    display: none !important;
+  }
+
+  .uber-brand-btn {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .adda-custom-logo {
+    max-width: 92px;
+    height: 22px !important;
+    object-fit: contain;
+  }
+
+  .cmhub-user-group {
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .cmhub-user-pill {
+    padding: 3px !important;
+    border-radius: 50%;
+  }
+
+  .cmhub-user-meta,
+  .header-logout-btn {
+    display: none !important;
+  }
+
+  .cmhub-user-avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .page-hero {
+    margin-bottom: 12px !important;
+  }
+
+  .page-hero-header {
+    margin-bottom: 14px;
+    gap: 8px !important;
+  }
+
+  .page-hero-titles {
+    min-width: 0;
+  }
+
+  .landing-verified-badge {
+    max-width: 100%;
+    margin-bottom: 8px;
+    padding: 4px 8px;
+    font-size: 0.62rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .page-hero-titles h1,
+  .uber-main-title {
+    font-size: 1.55rem !important;
+    line-height: 1.14;
+  }
+
+  .page-hero-titles p,
+  .uber-subtitle {
+    max-width: 34rem;
+    font-size: 0.8rem !important;
+    line-height: 1.4;
+  }
+
+  /* Add is always available in the floating dock on phones. */
+  .page-hero-actions {
+    display: none !important;
+  }
+
+  .cmhub-segmented-shell {
+    margin: 10px 0 14px;
+  }
+
+  .cmhub-segmented-tabs {
+    gap: 2px;
+    padding: 3px !important;
+  }
+
+  .cmhub-segment-btn {
+    min-height: 38px;
+    gap: 5px;
+    padding: 8px 7px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .filter-control-shell {
+    margin: 0 -14px 14px;
+    padding: 10px 14px 8px;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    gap: 10px;
+  }
+
+  .cmhub-search-bar {
+    min-height: 42px;
+    padding: 6px 13px !important;
+  }
+
+  .cmhub-search-input {
+    min-width: 0;
+    font-size: 0.86rem !important;
+  }
+
+  .cmhub-filter-scroll {
+    margin-right: -14px;
+    padding-right: 14px;
+    padding-bottom: 3px;
+    overscroll-behavior-inline: contain;
+  }
+
+  .cmhub-filter-chip {
+    min-height: 34px;
+    padding: 7px 13px !important;
+    font-size: 0.76rem !important;
+  }
+
+  .map-card-wrapper {
+    margin: 0 -2px 18px;
+    border-radius: 18px;
+  }
+
+  #map-container {
+    height: min(52svh, 400px) !important;
+    min-height: 300px !important;
+  }
+
+  .map-floating-bar {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+  }
+
+  .map-floating-banner {
+    max-width: calc(100% - 106px);
+    padding: 6px 8px;
+    gap: 6px;
+    font-size: 0.66rem;
+  }
+
+  .map-btn-enable-loc {
+    padding: 4px 7px;
+    font-size: 0.64rem;
+  }
+
+  .map-floating-controls {
+    gap: 5px;
+  }
+
+  .map-ctrl-btn {
+    min-height: 34px;
+    padding: 7px 8px;
+    font-size: 0.68rem;
+  }
+
+  .map-zoom-controls {
+    right: 8px;
+  }
+
+  .map-zoom-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .map-add-spot-btn {
+    right: 8px;
+    bottom: 42px;
+    padding: 8px 10px;
+    font-size: 0.72rem;
+  }
+
+  .map-legend {
+    left: 8px;
+    bottom: 8px;
+    max-width: calc(100% - 100px);
+    gap: 7px;
+    padding: 6px 8px;
+    font-size: 0.6rem;
+    overflow: hidden;
+  }
+
+  .map-legend span:nth-child(2) {
+    display: none;
+  }
+
+  .spots-section-header {
+    margin-bottom: 12px;
+  }
+
+  .spots-section-title {
+    font-size: 1.08rem;
+  }
+
+  .spots-grid {
+    gap: 12px;
+  }
+
+  .cmhub-spot-cover {
+    height: 172px;
+  }
+
+  .cmhub-card-body {
+    padding: 13px;
+  }
+
+  .cmhub-card-title {
+    font-size: 1rem;
+  }
+
+  .cmhub-card-snippet {
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+  }
+
+  .cmhub-card-footer {
+    gap: 8px;
+  }
+
+  .cmhub-address-text {
+    max-width: 52%;
+  }
+
+  .uber-card-directions-btn {
+    padding: 7px 10px;
+    font-size: 0.7rem;
+  }
+
+  .bottom-nav {
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    width: calc(100% - 16px) !important;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .cmhub-segment-btn {
+    font-size: 0.64rem !important;
+  }
+
+  .cmhub-segment-btn svg {
+    display: none;
+  }
+
+  .bottom-nav .nav-item {
+    min-width: 40px !important;
+    padding-left: 3px !important;
+    padding-right: 3px !important;
+  }
+}
+
 .loc-option-card {
   display: flex;
   align-items: center;
@@ -4507,7 +4786,6 @@ input[type="time"] {
   border-color: #ffffff;
   font-weight: 700;
 }
-
 
 
 
