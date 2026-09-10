@@ -37,7 +37,7 @@ const INITIAL_FORM = {
   priceMax: "300",
   openTime: "10:00",
   closeTime: "23:00",
-  rating: 5,
+  rating: 0,
   reviewText: "",
   tips: "",
 };
@@ -347,8 +347,18 @@ export default function AddPin({ userLocation, onBack, onSuccess, onCreated, onT
       return;
     }
 
-    if (!form.reviewText.trim()) {
-      onToast?.("Please share a quick note/review about this spot.", "error");
+    if (!form.priceMin || !form.priceMax) {
+      onToast?.("Please add an approximate price for this spot.", "error");
+      return;
+    }
+
+    if (!selectedFile) {
+      onToast?.("Please add at least one photo of this spot.", "error");
+      return;
+    }
+
+    if (!form.rating) {
+      onToast?.("Please select a rating for this spot.", "error");
       return;
     }
 
@@ -377,7 +387,7 @@ export default function AddPin({ userLocation, onBack, onSuccess, onCreated, onT
         openTime: form.openTime,
         closeTime: form.closeTime,
         rating: Number(form.rating),
-        reviewText: form.reviewText.trim(),
+        reviewText: form.reviewText.trim() || "Community recommended spot",
         tips: form.tips.trim(),
         photoUrl,
       };
@@ -489,7 +499,7 @@ export default function AddPin({ userLocation, onBack, onSuccess, onCreated, onT
           <div>
             <h1 className="uber-form-title">Pin an Adda</h1>
             <p className="uber-subtitle">
-              Add a verified spot, cafe, restaurant, or late night dining adda.
+              Add a spot in under a minute. Details can come later.
             </p>
           </div>
           <button type="button" className="uber-secondary-btn" onClick={onBack}>
@@ -705,6 +715,7 @@ export default function AddPin({ userLocation, onBack, onSuccess, onCreated, onT
                   placeholder="100"
                   value={form.priceMin}
                   onChange={(e) => update("priceMin", e.target.value)}
+                  required
                 />
               </div>
               <div>
@@ -717,6 +728,7 @@ export default function AddPin({ userLocation, onBack, onSuccess, onCreated, onT
                   placeholder="300"
                   value={form.priceMax}
                   onChange={(e) => update("priceMax", e.target.value)}
+                  required
                 />
               </div>
             </div>
@@ -744,6 +756,64 @@ export default function AddPin({ userLocation, onBack, onSuccess, onCreated, onT
               </button>
             </div>
           </div>
+
+          {/* Photo Upload (Required) */}
+          <div className="cmhub-form-group required-photo-group">
+            <label className="cmhub-label">Photo <span className="required-label">Required</span></label>
+            <input
+              type="file"
+              accept="image/*"
+              className="cmhub-input"
+              onChange={handlePhotoSelect}
+              required
+            />
+            {previewUrl && (
+              <div style={{ marginTop: 8 }}>
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  style={{ width: "100%", maxHeight: 160, objectFit: "cover", borderRadius: 12 }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Rating (Required) */}
+          <div className="cmhub-form-group required-rating-group">
+            <label className="cmhub-label">Your Rating <span className="required-label">Required</span></label>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                    lineHeight: 1,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                  onClick={() => update("rating", star)}
+                  aria-label={`${star} star rating`}
+                >
+                  <IconStar
+                    size={26}
+                    fill={form.rating >= star ? "#FFFFFF" : "transparent"}
+                    color={form.rating >= star ? "#FFFFFF" : "#3F3F46"}
+                  />
+                </button>
+              ))}
+              <span style={{ color: "#A0A0A0", fontSize: "0.85rem", alignSelf: "center", marginLeft: 8, fontWeight: 600 }}>
+                {form.rating ? `${form.rating}.0` : "Tap to rate"}
+              </span>
+            </div>
+          </div>
+
+          <details className="add-pin-more-details">
+            <summary>More details <span>Optional</span></summary>
+            <div className="add-pin-more-content">
 
           {/* Operating Hours (Clean, dedicated 2-column inputs with visible time text) */}
           <div className="cmhub-form-group">
@@ -807,48 +877,15 @@ export default function AddPin({ userLocation, onBack, onSuccess, onCreated, onT
             </div>
           </div>
 
-          {/* Rating */}
-          <div className="cmhub-form-group">
-            <label className="cmhub-label">Your Rating</label>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 0,
-                    lineHeight: 1,
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                  onClick={() => update("rating", star)}
-                >
-                  <IconStar
-                    size={26}
-                    fill={form.rating >= star ? "#FFFFFF" : "transparent"}
-                    color={form.rating >= star ? "#FFFFFF" : "#3F3F46"}
-                  />
-                </button>
-              ))}
-              <span style={{ color: "#A0A0A0", fontSize: "0.85rem", alignSelf: "center", marginLeft: 8, fontWeight: 600 }}>
-                {form.rating === 5 ? "5.0 Excellent" : form.rating === 4 ? "4.0 Very Good" : `${form.rating}.0`}
-              </span>
-            </div>
-          </div>
-
           {/* Review Text */}
           <div className="cmhub-form-group">
-            <label className="cmhub-label">Review / Recommendation *</label>
+            <label className="cmhub-label">Quick note <span className="optional-label">Optional</span></label>
             <textarea
               className="cmhub-textarea"
               rows={3}
               placeholder="What makes this spot worth visiting? Must-try dishes..."
               value={form.reviewText}
               onChange={(e) => update("reviewText", e.target.value)}
-              required
             />
           </div>
 
@@ -864,25 +901,8 @@ export default function AddPin({ userLocation, onBack, onSuccess, onCreated, onT
             />
           </div>
 
-          {/* Photo Upload (Optional) */}
-          <div className="cmhub-form-group">
-            <label className="cmhub-label">Photo (Optional)</label>
-            <input
-              type="file"
-              accept="image/*"
-              className="cmhub-input"
-              onChange={handlePhotoSelect}
-            />
-            {previewUrl && (
-              <div style={{ marginTop: 8 }}>
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  style={{ width: "100%", maxHeight: 160, objectFit: "cover", borderRadius: 12 }}
-                />
-              </div>
-            )}
-          </div>
+            </div>
+          </details>
 
           {/* Submit */}
           <button
@@ -896,7 +916,7 @@ export default function AddPin({ userLocation, onBack, onSuccess, onCreated, onT
             ) : (
               <>
                 <IconPlus size={18} />
-                <span>Publish Spot (+150 Points)</span>
+                <span>Add Spot · +150 pts</span>
               </>
             )}
           </button>

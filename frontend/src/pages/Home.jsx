@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 import Map from "../components/Map";
 import SpotCard from "../components/SpotCard";
@@ -43,7 +43,6 @@ export default function Home({
   const [searchTerm, setSearchTerm] = useState("");
   const [spots, setSpots] = useState([]);
   const [loading, setLoading] = useState(true);
-  const locationRequestStarted = useRef(false);
 
   const userLat = userLocation?.lat ?? userProfile?.lat ?? null;
   const userLng = userLocation?.lng ?? userProfile?.lng ?? null;
@@ -58,25 +57,6 @@ export default function Home({
     }
     return null;
   }, [userLat, userLng, userLocation?.accuracy]);
-
-  useEffect(() => {
-    if (effectiveLocation || locationRequestStarted.current) return;
-    locationRequestStarted.current = true;
-
-    if (!navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        setUserLocation?.({
-          lat: coords.latitude,
-          lng: coords.longitude,
-          accuracy: coords.accuracy,
-        });
-      },
-      () => {},
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
-    );
-  }, [effectiveLocation, setUserLocation]);
 
   useEffect(() => {
     let ignore = false;

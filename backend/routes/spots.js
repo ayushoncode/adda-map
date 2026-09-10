@@ -207,6 +207,9 @@ router.post("/", requireAuth, async (req, res) => {
       reviewText,
       tips = "",
       photoUrl = "",
+      area = "",
+      specialty = "",
+      menuSnippet = "",
     } = req.body;
 
     if (
@@ -217,6 +220,7 @@ router.post("/", requireAuth, async (req, res) => {
       !address ||
       !priceMin ||
       !priceMax ||
+      !photoUrl ||
       !openTime ||
       !closeTime ||
       !rating ||
@@ -247,7 +251,7 @@ router.post("/", requireAuth, async (req, res) => {
       priceMax: Number(priceMax),
       openTime,
       closeTime,
-      imageUrl: imageUrl || "",
+      imageUrl: photoUrl,
       specialty: specialty || "",
       menuSnippet: menuSnippet || "",
       avgRating: Number(rating),

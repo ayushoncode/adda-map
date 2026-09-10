@@ -62,6 +62,19 @@ const userLocationIcon = L.divIcon({
   iconAnchor: [16, 16],
 });
 
+const getLocationErrorMessage = (error) => {
+  if (error?.code === 1) {
+    return "Location permission is blocked. Allow it in browser site settings, then retry.";
+  }
+  if (error?.code === 2) {
+    return "Your location could not be found. Check device location services and retry.";
+  }
+  if (error?.code === 3) {
+    return "Location timed out. Move somewhere with a clearer signal and retry.";
+  }
+  return "Location is unavailable right now. Please retry.";
+};
+
 export default function Map({
   spots = [],
   center,
@@ -81,6 +94,7 @@ export default function Map({
   const [isLocating, setIsLocating] = useState(false);
   const [bannerVisible, setBannerVisible] = useState(true);
   const [styleMenuOpen, setStyleMenuOpen] = useState(false);
+  const [locationError, setLocationError] = useState("");
 
   // Initialize Map
   useEffect(() => {
@@ -259,11 +273,18 @@ export default function Map({
   // GPS Locate Action
   const handleLocateMe = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      setLocationError("This browser does not support location.");
+      return;
+    }
+
+    const isLocalhost = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+    if (!window.isSecureContext && !isLocalhost) {
+      setLocationError("Location needs an HTTPS connection on the live site.");
       return;
     }
 
     setIsLocating(true);
+    setLocationError("");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
@@ -271,6 +292,7 @@ export default function Map({
         setUserLocation?.(newLoc);
         setIsLocating(false);
         setBannerVisible(false);
+        setLocationError("");
 
         if (mapInstanceRef.current) {
           mapInstanceRef.current.flyTo([latitude, longitude], 16, {
@@ -281,8 +303,9 @@ export default function Map({
       (err) => {
         console.error("Locate error:", err);
         setIsLocating(false);
+        setLocationError(getLocationErrorMessage(err));
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
     );
   };
 
@@ -300,14 +323,14 @@ export default function Map({
       <div className="map-floating-bar">
         {bannerVisible && !userLocation && (
           <div className="map-floating-banner">
-            <span>Enable location to show spots near you</span>
+            <span>{locationError || "Enable location to show spots near you"}</span>
             <button
               type="button"
               className="map-btn-enable-loc"
               onClick={handleLocateMe}
               disabled={isLocating}
             >
-              {isLocating ? "Locating..." : "Enable GPS"}
+              {isLocating ? "Locating..." : locationError ? "Retry" : "Enable GPS"}
             </button>
           </div>
         )}

@@ -2596,6 +2596,11 @@ a {
   animation: fadeIn 140ms ease;
 }
 
+/* Keep the add form's location search below the fixed app header while scrolling. */
+.loc-search-box-wrap {
+  z-index: 900 !important;
+}
+
 .loc-suggestion-item {
   display: flex;
   align-items: flex-start;
@@ -4754,6 +4759,142 @@ input[type="time"] {
   background: transparent !important;
 }
 
+/* Quick-add form: keep the first screen focused on the four things needed to pin a spot. */
+.add-pin-more-details {
+  border: 1px solid #262626;
+  border-radius: 14px;
+  background: #141414;
+  overflow: hidden;
+}
+
+.add-pin-more-details summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 12px 14px;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 700;
+  list-style: none;
+}
+
+.add-pin-more-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.add-pin-more-details summary::after {
+  content: "+";
+  color: #a0a0a0;
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+.add-pin-more-details[open] summary::after {
+  content: "−";
+}
+
+.add-pin-more-details summary span,
+.optional-label,
+.required-label {
+  margin-left: 6px;
+  color: #8e8e93;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.required-label {
+  color: #10b981;
+}
+
+.add-pin-more-content {
+  display: grid;
+  gap: 18px;
+  padding: 0 14px 14px;
+}
+
+@media (max-width: 600px) {
+  .uber-form-card {
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .add-pin-container {
+    padding-top: 8px !important;
+  }
+
+  .cmhub-form-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .cmhub-form-header .uber-secondary-btn {
+    padding: 8px 10px;
+    font-size: 0.76rem;
+  }
+
+  .cmhub-form-header .uber-secondary-btn span {
+    display: none;
+  }
+
+  .cmhub-form-title,
+  .uber-form-title {
+    font-size: 1.35rem;
+  }
+
+  .cmhub-form-group {
+    gap: 6px;
+  }
+
+  .cmhub-input,
+  .cmhub-textarea {
+    padding: 11px 12px;
+    font-size: 0.88rem;
+  }
+
+  .uber-type-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .uber-type-btn {
+    min-height: 40px;
+    padding: 8px 7px;
+    font-size: 0.74rem;
+  }
+
+  .loc-option-cards {
+    gap: 7px;
+  }
+
+  .loc-option-card {
+    min-height: 54px;
+    padding: 9px 10px;
+  }
+
+  .loc-option-text strong {
+    font-size: 0.78rem;
+  }
+
+  .loc-option-text span {
+    font-size: 0.68rem;
+  }
+
+  .loc-map-container-wrap > div:first-child {
+    height: 160px !important;
+  }
+
+  .add-pin-more-content {
+    gap: 14px;
+  }
+
+  .add-pin-more-details + .uber-cta-btn {
+    margin-top: 0 !important;
+    min-height: 48px;
+  }
+}
+
 .uber-preset-chips {
   display: flex;
   flex-wrap: wrap;
@@ -4786,8 +4927,5 @@ input[type="time"] {
   border-color: #ffffff;
   font-weight: 700;
 }
-
-
-
 
 
